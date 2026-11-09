@@ -1,2 +1,5 @@
 package/
 *.tgz
+server/node_modules/
+server/.wrangler/
+_site/

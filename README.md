@@ -7,6 +7,7 @@ Sunucu odasında NullPointer, RaceCondition, MergeConflict, FlakyTest, MemoryLea
 ## Modlar
 - **Sprint (3 dk):** Buglar giderek hızlanır, en yüksek puanı yap.
 - **Hayatta Kal:** Sonsuz dalga, her 5. dalgada boss.
+- **Canlı Arena:** İş arkadaşlarınla gerçek zamanlı herkes-herkese karşı PvP.
 
 ## İlerleme
 - XP ve level: Stajyer → Junior → … → CTO
@@ -17,10 +18,21 @@ Sunucu odasında NullPointer, RaceCondition, MergeConflict, FlakyTest, MemoryLea
 ## Kontroller
 `WASD` hareket · fare nişan · sol tık ateş · `Space` zıpla · `Shift` dash · `R` şarjör · `1-5` / tekerlek silah · `G` / sağ tık bomba · `Q` breakpoint · `Esc` duraklat
 
-## Çalıştırma
-Tek dosya: `index.html`. Derleme adımı ya da sunucu gerekmez, doğrudan açabilirsin. GitHub Pages için: **Settings → Pages → Deploy from a branch → `main` / root**.
+## Canlı Arena ve ortak liderlik tablosu
+Çok oyunculu kısım `server/` klasöründeki küçük bir Cloudflare Worker ile çalışır (Durable Objects: arena/lobi için WebSocket odaları, liderlik tablosu için SQLite). Sunucu yoksa oyun tek oyunculu modda açılır.
 
-## Notlar
-- Bu sürümde ilerleme tarayıcının `localStorage`'ında tutulur.
-- Ortak liderlik tablosu ve Canlı Arena (PvP), Claude üzerinden paylaşılan sürümde çalışır; bu statik sürümde kapalıdır.
-- Kaynak: `src/head.html` + `src/game.js`; `build.py` three.js r128'i içine gömerek `index.html`'i üretir.
+## Yayına alma (tek seferlik kurulum)
+1. **Cloudflare API token:** Cloudflare → My Profile → API Tokens → Create Token → **Edit Cloudflare Workers** şablonu → Create.
+2. **Repo secret'ları:** GitHub → Settings → Secrets and variables → Actions → New repository secret
+   - `CLOUDFLARE_API_TOKEN` = oluşturduğun token
+   - `CLOUDFLARE_ACCOUNT_ID` = Cloudflare ana sayfasındaki Account ID (birden fazla hesabın varsa gerekli)
+3. **Pages:** Settings → Pages → Source: **GitHub Actions**.
+4. Actions → **Deploy** → Run workflow. Sonrasında `main`'e her push'ta sunucu ve oyun birlikte güncellenir.
+
+İş akışı Worker'ı yükler, adresini `config.json` olarak siteye koyar ve siteyi GitHub Pages'e yayınlar.
+
+## Geliştirme
+- Oyun: `src/head.html` + `src/game.js`; `python3 build.py <three.min.js yolu>` three.js r128'i gömerek `index.html`'i üretir.
+- Sunucu: `cd server && npm i && npx wrangler dev --var ALLOWED_ORIGINS:*`; yerelde denemek için kök dizine `{"server":"http://localhost:8787"}` içeren bir `config.json` koyup siteyi bir HTTP sunucusuyla aç.
+- Sunucu sadece `ALLOWED_ORIGINS` (varsayılan `https://eosyam.github.io`) adresinden gelen bağlantıları kabul eder.
+- İlerleme tarayıcının `localStorage`'ında tutulur; liderlik tablosuna her oyuncu yalnızca kendi tarayıcısındaki gizli anahtarla yazabilir.

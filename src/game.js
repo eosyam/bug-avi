@@ -104,10 +104,112 @@ function useCap(n) {
   try { if (window.claude && typeof window.claude.use === 'function') return Promise.resolve(window.claude.use(n)).catch(() => null); } catch (e) { }
   return Promise.resolve(null);
 }
+/* --------- standalone multiplayer: own server (Cloudflare Worker) --------- */
+const NET = { server: null, key: null, err: false };
+const hex = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, '0')).join('');
+function netIdentity() {
+  let pid = null, key = null;
+  try { pid = localStorage.getItem('bugavi.pid'); key = localStorage.getItem('bugavi.key'); } catch (e) { }
+  if (!/^[a-f0-9]{20}$/.test(pid || '') || !/^[a-f0-9]{32}$/.test(key || '')) {
+    pid = hex(10); key = hex(16);
+    try { localStorage.setItem('bugavi.pid', pid); localStorage.setItem('bugavi.key', key); } catch (e) { }
+  }
+  return { pid, key };
+}
+function wsRoom(name) {
+  const st = { ws: null, me: null, peers: new Map(), peerCbs: new Set(), topicCbs: new Map(), connCbs: new Set(), pres: {}, closed: false, retry: 0, timer: null, presTimer: null, presT: 0, connected: false };
+  const url = NET.server.replace(/^http/, 'ws') + '/ws/' + name;
+  let snap = Object.freeze([]);
+  const mk = (peer, p) => Object.freeze({ peer, by: null, isMe: peer === st.me, sameTab: peer === st.me, kind: 'viewer', guest: false, presence: Object.freeze(p || {}), updatedAt: Date.now() });
+  const notify = (joined = [], left = [], updated = []) => {
+    snap = Object.freeze([...st.peers.values()]);
+    const ch = { peers: snap, joined, left, updated };
+    st.peerCbs.forEach(f => { try { f(ch); } catch (e) { console.error(e); } });
+  };
+  const setConn = v => { if (st.connected === v) return; st.connected = v; st.connCbs.forEach(f => { try { f(v); } catch (e) { } }); };
+  function sendPres(force) {
+    if (!st.ws || st.ws.readyState !== 1) return;
+    const now = performance.now();
+    if (!force && now - st.presT < 45) { if (!st.presTimer) st.presTimer = setTimeout(() => { st.presTimer = null; sendPres(true); }, 50); return; }
+    st.presT = now; st.ws.send(JSON.stringify({ t: 'pres', p: st.pres }));
+  }
+  function schedule() { if (st.closed) return; clearTimeout(st.timer); st.timer = setTimeout(connect, Math.min(15000, 1000 * Math.pow(2, st.retry++))); }
+  function connect() {
+    if (st.closed) return;
+    let ws; try { ws = new WebSocket(url); } catch (e) { return schedule(); }
+    st.ws = ws;
+    ws.onmessage = ev => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.t === 'hello') {
+        st.me = m.peer; st.retry = 0; st.peers.clear();
+        st.peers.set(st.me, mk(st.me, { ...st.pres }));
+        for (const x of m.peers || []) if (x && x.peer) st.peers.set(x.peer, mk(x.peer, x.p));
+        setConn(true); notify([...st.peers.values()]);
+        if (Object.keys(st.pres).length) sendPres(true);
+      } else if (m.t === 'join' || m.t === 'pres') {
+        const p = mk(m.peer, m.p); const isNew = !st.peers.has(m.peer); st.peers.set(m.peer, p);
+        isNew ? notify([p]) : notify([], [], [p]);
+      } else if (m.t === 'leave') {
+        const p = st.peers.get(m.peer); if (p) { st.peers.delete(m.peer); notify([], [p]); }
+      } else if (m.t === 'msg') {
+        const cbs = st.topicCbs.get(m.topic); if (!cbs) return;
+        const msg = { topic: m.topic, data: m.data, peer: m.peer, by: null, isMe: m.peer === st.me, sameTab: m.peer === st.me, kind: 'viewer', guest: false };
+        cbs.forEach(f => { try { f(msg); } catch (e) { console.error(e); } });
+      }
+    };
+    ws.onclose = () => {
+      if (st.ws !== ws) return; setConn(false);
+      const left = [...st.peers.values()].filter(p => p.peer !== st.me);
+      left.forEach(p => st.peers.delete(p.peer)); if (left.length) notify([], left);
+      schedule();
+    };
+    ws.onerror = () => { };
+  }
+  connect();
+  const ka = setInterval(() => { if (st.ws && st.ws.readyState === 1) st.ws.send('{"t":"ping"}'); }, 30000);
+  return {
+    name,
+    presence(patch) {
+      for (const k in patch) { if (patch[k] === null) delete st.pres[k]; else st.pres[k] = patch[k]; }
+      if (st.me) { const p = mk(st.me, { ...st.pres }); st.peers.set(st.me, p); notify([], [], [p]); }
+      sendPres(false); return Promise.resolve();
+    },
+    onPeers(fn) { st.peerCbs.add(fn); if (snap.length) setTimeout(() => fn({ peers: snap, joined: snap, left: [], updated: [] }), 0); return () => st.peerCbs.delete(fn); },
+    on(topic, fn) { if (!st.topicCbs.has(topic)) st.topicCbs.set(topic, new Set()); st.topicCbs.get(topic).add(fn); return () => st.topicCbs.get(topic).delete(fn); },
+    emit(topic, data) { if (st.ws && st.ws.readyState === 1) st.ws.send(JSON.stringify({ t: 'emit', topic, data })); return Promise.resolve(); },
+    peers: () => snap,
+    connected: () => st.connected,
+    onConnection(fn) { st.connCbs.add(fn); setTimeout(() => fn(st.connected), 0); return () => st.connCbs.delete(fn); },
+    join: n => Promise.resolve(wsRoom(n)),
+    leave() { st.closed = true; clearInterval(ka); clearTimeout(st.timer); clearTimeout(st.presTimer); try { st.ws && st.ws.close(); } catch (e) { } return Promise.resolve(); },
+  };
+}
+function fetchScores() {
+  if (!NET.server) return;
+  fetch(NET.server + '/scores', { cache: 'no-store' }).then(r => { if (!r.ok) throw new Error(r.status); return r.json(); })
+    .then(d => { scoresList = Array.isArray(d.scores) ? d.scores.filter(s => s && typeof s === 'object') : []; lbState = 'ok'; renderLBIfOpen(); })
+    .catch(() => { if (lbState !== 'ok') lbState = 'error'; renderLBIfOpen(); });
+}
+const NICK_POOL = ['Segfault', 'Hotfix', 'Kernel', 'Lambda', 'Daemon', 'Cache', 'Mutex', 'Pixel', 'Commit', 'Sudo', 'Regex', 'Ping'];
+async function bootStandalone() {
+  let cfg = null;
+  try { const r = await fetch('config.json', { cache: 'no-store' }); if (r.ok) cfg = await r.json(); } catch (e) { }
+  const server = cfg && typeof cfg.server === 'string' && /^https?:\/\/[^\s/]+$/.test(cfg.server.replace(/\/+$/, '')) ? cfg.server.replace(/\/+$/, '') : null;
+  if (!server) return;
+  NET.server = server;
+  const id = netIdentity(); CAP.uid = id.pid; NET.key = id.key;
+  if (!profile.nick) { profile.nick = NICK_POOL[Math.floor(Math.random() * NICK_POOL.length)] + Math.floor(10 + Math.random() * 90); saveLocal(); }
+  CAP.room = wsRoom('lobby');
+  lbState = 'loading'; fetchScores();
+  setInterval(() => { if (game.state === 'menu' && !document.hidden) fetchScores(); }, 30000);
+  if (profile.xpTotal > 0) pushScore();
+  setupLobby();
+}
 async function bootCaps() {
   for (let i = 0; i < 20 && !(window.claude && window.claude.use); i++) await sleep(100);
   const [db, user, room] = await Promise.all([useCap('db'), useCap('user'), useCap('room')]);
   CAP.db = db; CAP.user = user; CAP.room = room;
+  if (!db && !user && !room) { await bootStandalone(); renderMenu(); return; }
   if (user) {
     try { CAP.uid = await user.id(); } catch (e) { }
     try { const me = await user.me(); CAP.myName = (me && me.name) || ''; } catch (e) { }
@@ -145,10 +247,16 @@ function subscribeScores() {
 }
 let scoreChain = Promise.resolve(), lastScoreBody = '';
 function pushScore() {
-  if (!CAP.db || !CAP.uid || lbWriteOff) return;
+  if (!CAP.uid || lbWriteOff || (!CAP.db && !NET.server)) return;
   const body = { nick: profile.nick, sprint: Math.floor(profile.best.sprint), wave: profile.best.wave, level: lvlNow(), xp: Math.floor(profile.xpTotal), pvp: profile.pvpKills, kills: profile.totalKills, tint: profile.tint };
   const key = JSON.stringify(body); if (key === lastScoreBody) return; lastScoreBody = key;
   body.t = Date.now();
+  if (NET.server) {
+    scoreChain = scoreChain.then(() => fetch(NET.server + '/scores', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ ...body, pid: CAP.uid, key: NET.key }) }))
+      .then(r => { if (!r.ok) throw new Error(r.status); NET.err = false; fetchScores(); })
+      .catch(e => { console.warn('score', e); NET.err = true; lastScoreBody = ''; renderLBIfOpen(); });
+    return;
+  }
   scoreChain = scoreChain.then(() => CAP.db.doc('scores/' + CAP.uid).set(body)).catch(e => { console.warn('score', e); lbWriteOff = true; renderLBIfOpen(); });
 }
 let nameReq = null;
@@ -1274,7 +1382,7 @@ window.addEventListener('resize', () => {
 
 /* ------------------------------ MENU ------------------------------ */
 let curTab = 'play', lbTab = 'sprint';
-document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => { curTab = b.dataset.tab; document.querySelectorAll('#tabs .tab').forEach(x => x.classList.toggle('on', x === b)); renderMenu(); });
+document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => { curTab = b.dataset.tab; if (curTab === 'lb') fetchScores(); document.querySelectorAll('#tabs .tab').forEach(x => x.classList.toggle('on', x === b)); renderMenu(); });
 function avatarColor() { const t = TINTS[profile.tint] || TINTS[0]; return t.c < 0 ? 'linear-gradient(135deg,#ff3d81,#ffd23f,#36e2ff)' : '#' + new THREE.Color(t.c).getHexString(); }
 function renderProfileCard() {
   const li = levelInfo(profile.xpTotal), nm = myName();
@@ -1290,10 +1398,10 @@ function renderMenu() {
   const B = $('#tabBody'), L = lvlNow();
   if (curTab === 'play') {
     const inArena = lobbyPeers.filter(p => p.presence && p.presence.st === 'arena' && !(p.isMe && p.sameTab)).length;
-    B.innerHTML = `<div class="panel"><h3>Mod seç</h3><div class="modes">
+    B.innerHTML = `${NET.server ? `<div class="panel" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span style="font-weight:600">Takma adın</span><input id="qNick" maxlength="16" value="${esc(profile.nick)}" style="background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 12px;font-family:var(--head);font-size:14px;user-select:text;width:200px"><span class="note">Liderlik tablosunda ve arenada iş arkadaşların bunu görür.</span></div>` : ''}<div class="panel"><h3>Mod seç</h3><div class="modes">
       <button class="mode" data-mode="sprint"><div class="ic">⏱</div><div class="nm">Sprint</div><div class="ds">3 dakika. Buglar giderek hızlanır, ortada bir Prod Incident patlar. Build bitmeden en yüksek puanı yap.</div><div class="bs">Rekor: ${fmt(profile.best.sprint)}</div></button>
       <button class="mode" data-mode="survival"><div class="ic">🌊</div><div class="nm">Hayatta Kal</div><div class="ds">Sonsuz dalga; her 5. dalgada boss. Uzun build'ler ve bitmeyen code review'lar için.</div><div class="bs">Rekor: ${profile.best.wave ? profile.best.wave + '. dalga' : '—'}</div></button>
-      <button class="mode pvp" data-mode="arena" ${CAP.room ? '' : 'disabled'}><div class="ic">⚔</div><div class="nm">Canlı Arena</div><div class="ds">${CAP.room ? 'İş arkadaşlarınla gerçek zamanlı herkes-herkese karşı. Geliştirmeler kapalı, adil dövüş; kazandığın XP yine sayılır.' : 'Canlı arena bu sürümde kapalı. Çok oyunculu mod Claude üzerinden paylaşılan sürümde çalışır.'}</div><div class="bs">${CAP.room ? `<span class="live">${inArena ? inArena + ' KİŞİ ARENADA' : 'CANLI'}</span>` : ''}</div></button>
+      <button class="mode pvp" data-mode="arena" ${CAP.room ? '' : 'disabled'}><div class="ic">⚔</div><div class="nm">Canlı Arena</div><div class="ds">${CAP.room ? 'İş arkadaşlarınla gerçek zamanlı herkes-herkese karşı. Geliştirmeler kapalı, adil dövüş; kazandığın XP yine sayılır.' : 'Canlı arena şu an kapalı: oyun sunucusuna bağlanılamadı.'}</div><div class="bs">${CAP.room ? `<span class="live">${inArena ? inArena + ' KİŞİ ARENADA' : 'CANLI'}</span>` : ''}</div></button>
     </div>
     <div class="keys">
       <div><kbd>W A S D</kbd> hareket</div><div><kbd>Fare</kbd> nişan · <kbd>Sol tık</kbd> ateş</div><div><kbd>Space</kbd> zıpla</div><div><kbd>R</kbd> şarjör</div>
@@ -1303,6 +1411,7 @@ function renderMenu() {
     </div></div>
     <div class="panel" style="margin-top:16px"><h3>Rozetler · ${profile.ach.length}/${ACH.length}</h3><div class="badges">${ACH.map(a => `<div class="badge ${profile.ach.includes(a.id) ? 'on' : ''}"><b>${esc(a.name)}</b>${esc(a.desc)}</div>`).join('')}</div></div>`;
     B.querySelectorAll('.mode').forEach(b => b.onclick = () => { if (b.disabled) return; requestLock(); startRun(b.dataset.mode); });
+    const q = $('#qNick'); if (q) q.onchange = () => { const v = q.value.replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 16); if (v) profile.nick = v; q.value = profile.nick; saveAll(); renderProfileCard(); setLobbyPresence(); };
   } else if (curTab === 'arsenal') {
     B.innerHTML = `<div class="panel"><h3>Silahlar</h3><div class="grid">${WEAPONS.map((w, i) => `
       <div class="card ${L >= w.lvl ? '' : 'lock'}"><div class="h"><span class="n">${w.icon} ${esc(w.name)}</span><span class="pill ${L >= w.lvl ? 'ok' : ''}">${L >= w.lvl ? 'Tuş ' + (i + 1) : 'Lv ' + w.lvl}</span></div>
@@ -1333,7 +1442,7 @@ function renderMenu() {
       <div class="set"><label for="sSens">Fare hassasiyeti</label><input type="range" id="sSens" min="0.2" max="3" step="0.05" value="${settings.sens}"><output>${settings.sens.toFixed(2)}</output></div>
       <div class="set"><label for="sFov">Görüş açısı (FOV)</label><input type="range" id="sFov" min="65" max="105" step="1" value="${settings.fov}"><output>${settings.fov}</output></div>
       <div class="set"><label for="sVol">Ses</label><input type="range" id="sVol" min="0" max="1" step="0.05" value="${settings.vol}"><output>${Math.round(settings.vol * 100)}%</output></div>
-      <p class="note">${CAP.db && CAP.uid ? 'İlerlemen hesabına kaydediliyor; başka cihazdan açınca kaldığın yerden devam edersin.' : 'İlerlemen bu tarayıcıda saklanıyor.'}</p></div>`;
+      <p class="note">${NET.server ? 'İlerlemen bu tarayıcıda saklanıyor; rekorların ortak liderlik tablosuna gönderiliyor.' : CAP.db && CAP.uid ? 'İlerlemen hesabına kaydediliyor; başka cihazdan açınca kaldığın yerden devam edersin.' : 'İlerlemen bu tarayıcıda saklanıyor.'}</p></div>`;
     const nick = $('#sNick'); nick.onchange = () => { profile.nick = nick.value.replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 16); saveAll(); renderProfileCard(); setLobbyPresence(); };
     const bind = (id, key, f) => { const el = $('#' + id); el.oninput = () => { settings[key] = +el.value; el.nextElementSibling.textContent = f(settings[key]); saveSettings(); applySettings(); }; };
     bind('sSens', 'sens', v => v.toFixed(2)); bind('sFov', 'fov', v => v); bind('sVol', 'vol', v => Math.round(v * 100) + '%');
@@ -1346,12 +1455,14 @@ function renderLB() {
   const cols = { sprint: ['Sprint rekoru', s => s.sprint || 0, v => fmt(v)], wave: ['En yüksek dalga', s => s.wave || 0, v => v ? v + '. dalga' : '—'], level: ['Level', s => s.xp || 0, (v, s) => 'Lv ' + (s.level || 1)], pvp: ['Arena fragı', s => s.pvp || 0, v => fmt(v)] };
   const [label, get, show] = cols[lbTab];
   let rows = [], msg = '';
-  if (!CAP.db || !CAP.uid) { msg = 'Ortak liderlik tablosu Claude üzerinden paylaşılan sürümde çalışır. Burada sadece bu tarayıcıdaki rekorların görünüyor.'; rows = [{ id: 'me', nick: profile.nick, sprint: profile.best.sprint, wave: profile.best.wave, level: lvlNow(), xp: profile.xpTotal, pvp: profile.pvpKills }]; }
+  if ((!CAP.db && !NET.server) || !CAP.uid) { msg = 'Ortak liderlik tablosu Claude üzerinden paylaşılan sürümde çalışır. Burada sadece bu tarayıcıdaki rekorların görünüyor.'; rows = [{ id: 'me', nick: profile.nick, sprint: profile.best.sprint, wave: profile.best.wave, level: lvlNow(), xp: profile.xpTotal, pvp: profile.pvpKills }]; }
   else {
     rows = scoresList.filter(s => s && typeof s === 'object');
     if (lbState === 'loading') msg = 'Liderlik tablosu yükleniyor…';
     if (lbState === 'slow') msg = 'Liderlik tablosuna şu an ulaşılamıyor; gösterilenler eski olabilir.';
     if (lbState === 'error') msg = 'Liderlik tablosu yüklenemedi.';
+    if (NET.server && lbState === 'error') msg = 'Liderlik tablosu sunucusuna şu an ulaşılamıyor.';
+    if (NET.err) msg = 'Son skorun sunucuya gönderilemedi; bir sonraki turda tekrar denenecek.';
     if (lbWriteOff) msg = 'Skorun tabloya yazılamadı: bu linkte yalnızca görüntüleme yetkin var gibi görünüyor. Linki paylaşan kişiden en az "Contributor" yetkisi iste.';
   }
   rows = rows.map(s => ({ ...s, _v: Number(get(s)) || 0 })).filter(s => s._v > 0 || s.id === CAP.uid || s.id === 'me').sort((a, b) => b._v - a._v).slice(0, 50);
