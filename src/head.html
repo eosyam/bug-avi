@@ -46,12 +46,12 @@ button{font-family:var(--head);cursor:pointer}
 #hitmark i:nth-child(4){top:17px;right:0;height:2px;width:10px}
 #hitmark.on{opacity:1;transition:none}
 #hitmark.kill i{background:var(--red)}
-#vignette{position:absolute;inset:0;box-shadow:inset 0 0 160px 40px rgba(255,30,60,.0);transition:box-shadow .25s}
-#lowhp{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,0,40,.28));opacity:0;transition:opacity .4s}
+#vignette{position:absolute;inset:0;box-shadow:inset 0 0 160px 40px rgba(255,30,60,.55);opacity:0;visibility:hidden}
+#lowhp{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,0,40,.28));visibility:hidden}
 #dmgdir{position:absolute;left:50%;top:50%;width:0;height:0}
 .dmgarc{position:absolute;left:-90px;top:-90px;width:180px;height:180px;border-radius:50%;border:5px solid transparent;border-top-color:rgba(255,60,80,.9);filter:drop-shadow(0 0 6px rgba(255,0,40,.8));animation:fadeArc .9s forwards}
 @keyframes fadeArc{from{opacity:1}to{opacity:0}}
-.hudbox{position:absolute;background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(10,16,30,.5));border:1px solid var(--line);border-radius:10px;padding:10px 14px;backdrop-filter:blur(4px)}
+.hudbox{position:absolute;background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(10,16,30,.5));border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:rgba(9,14,27,.82)}
 #hpbox{left:22px;bottom:22px;width:300px}
 .lbl{font-size:11px;letter-spacing:.14em;color:var(--muted)}
 #hpbar{height:12px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;margin-top:6px}
@@ -209,8 +209,12 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 .unl div b{color:var(--grn)}
 .row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
 .newrec{color:var(--yel);font-weight:700;letter-spacing:.1em;font-size:13px}
-#shieldfx{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(54,226,255,.55);opacity:0;transition:opacity .15s}
-#protfx{position:absolute;inset:0;box-shadow:inset 0 0 90px 18px rgba(255,255,255,.35);opacity:0;transition:opacity .2s}
+#shieldfx{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(54,226,255,.55);visibility:hidden}
+#protfx{position:absolute;inset:0;box-shadow:inset 0 0 90px 18px rgba(255,255,255,.35);visibility:hidden}
+#fps{position:absolute;left:12px;top:10px;font-family:var(--mono);font-size:12px;color:var(--grn);text-shadow:0 1px 2px #000}
+.seg{display:flex;gap:4px;flex-wrap:wrap;grid-column:2 / 4}
+.seg button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:600}
+.seg button.on{color:#071018;background:var(--cyan);border-color:var(--cyan)}
 #mvp{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(460px,90vw);text-align:center;padding:20px 24px}
 #mvp .crown{font-size:40px;line-height:1}
 #mvp .who{font-size:30px;font-weight:700;color:var(--yel);text-shadow:0 0 18px rgba(255,210,63,.5)}
@@ -255,6 +259,7 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
   <div id="scoreboard" class="hudbox hidden"></div>
   <div id="respawn" class="hudbox hidden"><div class="t">BUILD FAILED</div><div id="respawnS"></div></div>
   <div id="netnote" class="hudbox hidden"></div>
+  <div id="fps" class="hidden"></div>
   <div id="mvp" class="hudbox hidden"></div>
 </div>
 

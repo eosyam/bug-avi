@@ -46,12 +46,12 @@ button{font-family:var(--head);cursor:pointer}
 #hitmark i:nth-child(4){top:17px;right:0;height:2px;width:10px}
 #hitmark.on{opacity:1;transition:none}
 #hitmark.kill i{background:var(--red)}
-#vignette{position:absolute;inset:0;box-shadow:inset 0 0 160px 40px rgba(255,30,60,.0);transition:box-shadow .25s}
-#lowhp{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,0,40,.28));opacity:0;transition:opacity .4s}
+#vignette{position:absolute;inset:0;box-shadow:inset 0 0 160px 40px rgba(255,30,60,.55);opacity:0;visibility:hidden}
+#lowhp{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 55%,rgba(255,0,40,.28));visibility:hidden}
 #dmgdir{position:absolute;left:50%;top:50%;width:0;height:0}
 .dmgarc{position:absolute;left:-90px;top:-90px;width:180px;height:180px;border-radius:50%;border:5px solid transparent;border-top-color:rgba(255,60,80,.9);filter:drop-shadow(0 0 6px rgba(255,0,40,.8));animation:fadeArc .9s forwards}
 @keyframes fadeArc{from{opacity:1}to{opacity:0}}
-.hudbox{position:absolute;background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(10,16,30,.5));border:1px solid var(--line);border-radius:10px;padding:10px 14px;backdrop-filter:blur(4px)}
+.hudbox{position:absolute;background:linear-gradient(180deg,rgba(10,16,30,.72),rgba(10,16,30,.5));border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:rgba(9,14,27,.82)}
 #hpbox{left:22px;bottom:22px;width:300px}
 .lbl{font-size:11px;letter-spacing:.14em;color:var(--muted)}
 #hpbar{height:12px;background:rgba(255,255,255,.08);border-radius:6px;overflow:hidden;margin-top:6px}
@@ -209,8 +209,12 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 .unl div b{color:var(--grn)}
 .row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
 .newrec{color:var(--yel);font-weight:700;letter-spacing:.1em;font-size:13px}
-#shieldfx{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(54,226,255,.55);opacity:0;transition:opacity .15s}
-#protfx{position:absolute;inset:0;box-shadow:inset 0 0 90px 18px rgba(255,255,255,.35);opacity:0;transition:opacity .2s}
+#shieldfx{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(54,226,255,.55);visibility:hidden}
+#protfx{position:absolute;inset:0;box-shadow:inset 0 0 90px 18px rgba(255,255,255,.35);visibility:hidden}
+#fps{position:absolute;left:12px;top:10px;font-family:var(--mono);font-size:12px;color:var(--grn);text-shadow:0 1px 2px #000}
+.seg{display:flex;gap:4px;flex-wrap:wrap;grid-column:2 / 4}
+.seg button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:6px 12px;font-size:12.5px;font-weight:600}
+.seg button.on{color:#071018;background:var(--cyan);border-color:var(--cyan)}
 #mvp{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(460px,90vw);text-align:center;padding:20px 24px}
 #mvp .crown{font-size:40px;line-height:1}
 #mvp .who{font-size:30px;font-weight:700;color:var(--yel);text-shadow:0 0 18px rgba(255,210,63,.5)}
@@ -255,6 +259,7 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
   <div id="scoreboard" class="hudbox hidden"></div>
   <div id="respawn" class="hudbox hidden"><div class="t">BUILD FAILED</div><div id="respawnS"></div></div>
   <div id="netnote" class="hudbox hidden"></div>
+  <div id="fps" class="hidden"></div>
   <div id="mvp" class="hudbox hidden"></div>
 </div>
 
@@ -321,13 +326,16 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;'
 
 /* ------------------------------ SETTINGS + LANGUAGE ------------------------------ */
 const LS_KEY = 'bugavi.profile.v1', LS_SET = 'bugavi.settings.v1';
-let settings = { sens: 1, fov: 80, vol: 0.6, lang: 'en' };
+let settings = { sens: 1, fov: 80, vol: 0.6, lang: 'en', quality: 'auto', autoLevel: 'high', showFps: false };
 try { Object.assign(settings, JSON.parse(localStorage.getItem(LS_SET) || '{}')); } catch (e) { }
 if (settings.lang !== 'tr' && settings.lang !== 'en') settings.lang = 'en';
+if (!['auto', 'high', 'medium', 'low'].includes(settings.quality)) settings.quality = 'auto';
+if (!['high', 'medium', 'low'].includes(settings.autoLevel)) settings.autoLevel = 'high';
 let LANG = settings.lang;
 const tx = (en, tr) => LANG === 'tr' ? tr : en;
 const loc = v => Array.isArray(v) ? tx(v[0], v[1]) : v;
-const fmt = n => Math.floor(n).toLocaleString(LANG === 'tr' ? 'tr-TR' : 'en-US');
+const NF = {};
+const fmt = n => (NF[LANG] || (NF[LANG] = new Intl.NumberFormat(LANG === 'tr' ? 'tr-TR' : 'en-US'))).format(Math.floor(n));
 const saveSettings = () => { try { localStorage.setItem(LS_SET, JSON.stringify(settings)); } catch (e) { } };
 const STATIC = {
   title: ['BUG HUNT', 'BUG AVI'], tagline: ['Squash bugs while the AI writes your code.', 'AI kodu yazarken sen bugları vur.'],
@@ -692,12 +700,12 @@ const A = 30; // arena half size
 const container = $('#game');
 let renderer;
 try {
-  renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+  renderer = new THREE.WebGLRenderer({ antialias: (settings.quality === 'auto' ? settings.autoLevel : settings.quality) !== 'low', powerPreference: 'high-performance' });
 } catch (e) {
   document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif;color:#fff">${tx('WebGL could not start in this browser. Turn on hardware acceleration and try again.', 'Bu tarayıcıda WebGL açılamadı. Donanım hızlandırmayı açıp tekrar dene.')}</div>`;
   throw e;
 }
-renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+renderer.setPixelRatio(1);
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputEncoding = THREE.sRGBEncoding;
 renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -716,14 +724,14 @@ const vmCam = new THREE.PerspectiveCamera(60, innerWidth / innerHeight, 0.01, 10
 vmScene.add(new THREE.HemisphereLight(0xbfd4ff, 0x202030, 1.0));
 const vmDir = new THREE.DirectionalLight(0xffffff, 0.8); vmDir.position.set(1, 2, 1); vmScene.add(vmDir);
 
-scene.add(new THREE.HemisphereLight(0x8fb3ff, 0x1a1028, 0.6));
+const hemi = new THREE.HemisphereLight(0x8fb3ff, 0x1a1028, 0.6); scene.add(hemi);
 const sun = new THREE.DirectionalLight(0xdfe8ff, 0.75);
 sun.position.set(18, 34, 12); sun.castShadow = true;
 sun.shadow.mapSize.set(1024, 1024);
 Object.assign(sun.shadow.camera, { left: -36, right: 36, top: 36, bottom: -36, near: 1, far: 90 });
 scene.add(sun);
-[[-A + 2, -A + 2, 0x36e2ff], [A - 2, A - 2, 0xff3d81], [A - 2, -A + 2, 0xa66bff], [-A + 2, A - 2, 0x3ddc97]].forEach(([x, z, c]) => {
-  const l = new THREE.PointLight(c, 1.1, 34, 2); l.position.set(x, 5, z); scene.add(l);
+const cornerLights = [[-A + 2, -A + 2, 0x36e2ff], [A - 2, A - 2, 0xff3d81], [A - 2, -A + 2, 0xa66bff], [-A + 2, A - 2, 0x3ddc97]].map(([x, z, c]) => {
+  const l = new THREE.PointLight(c, 1.1, 34, 2); l.position.set(x, 5, z); scene.add(l); return l;
 });
 const flash = new THREE.PointLight(0xffcc66, 0, 9, 2); scene.add(flash);
 
@@ -791,6 +799,46 @@ const portalMeshes = PORTALS.map(p => {
   const m = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.07, 8, 32), new THREE.MeshBasicMaterial({ color: 0xff3d81, transparent: true, opacity: 0.45 }));
   m.rotation.x = -Math.PI / 2; m.position.set(p.x, 0.05, p.z); scene.add(m); m.userData.pulse = 0; return m;
 });
+
+/* --------------------------- GRAPHICS QUALITY --------------------------- */
+// high: sharp + live shadows + colored corner lights; medium: 1x resolution, shadows baked once, no corner lights; low: 0.75x resolution, no shadows
+const QUALITY = { high: { pr: 1.5, shadows: 'dynamic', lights: true }, medium: { pr: 1, shadows: 'static', lights: false }, low: { pr: 0.75, shadows: 'off', lights: false } };
+const qualityLevel = () => settings.quality === 'auto' ? settings.autoLevel : settings.quality;
+const liveShadows = () => QUALITY[qualityLevel()].shadows === 'dynamic';
+let appliedLights = null;
+function applyQuality() {
+  const q = QUALITY[qualityLevel()];
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, q.pr)); renderer.setSize(innerWidth, innerHeight);
+  const wantShadows = q.shadows !== 'off';
+  const relight = renderer.shadowMap.enabled !== wantShadows || appliedLights !== q.lights;
+  renderer.shadowMap.enabled = wantShadows;
+  renderer.shadowMap.autoUpdate = q.shadows === 'dynamic'; renderer.shadowMap.needsUpdate = true;
+  cornerLights.forEach(l => l.visible = q.lights); hemi.intensity = q.lights ? 0.6 : 1.0; appliedLights = q.lights;
+  if (relight) scene.traverse(o => { if (o.material) [].concat(o.material).forEach(m => m.needsUpdate = true); });
+}
+const perf = { frames: 0, time: 0, warm: 0, shown: 0, fpsT: 0, fpsFrames: 0 };
+// Software rendering (hardware acceleration off) makes every setting slow; detect it and say so.
+const GPU = (() => { try { const gl = renderer.getContext(); const ext = gl.getExtension('WEBGL_debug_renderer_info'); return String(ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : gl.getParameter(gl.RENDERER)); } catch (e) { return ''; } })();
+const softwareGL = /swiftshader|llvmpipe|softpipe|basic render|software/i.test(GPU);
+if (softwareGL && settings.quality === 'auto') settings.autoLevel = 'low';
+function trackPerf(realDt) {
+  perf.fpsFrames++; perf.fpsT += realDt;
+  if (perf.fpsT >= 0.5) {
+    const fps = Math.round(perf.fpsFrames / perf.fpsT); perf.fpsFrames = 0; perf.fpsT = 0;
+    if (settings.showFps) { const el = $('#fps'); el.textContent = `${fps} FPS · ${qualityLevel()}${softwareGL ? ' · software GL' : ''}`; }
+  }
+  if (game.state !== 'playing' || game.paused || document.hidden || settings.quality !== 'auto') { perf.frames = 0; perf.time = 0; perf.warm = 0; return; }
+  if (perf.warm < 2) { perf.warm += realDt; return; } // ignore the first seconds of a run (shader warm-up, spawns)
+  perf.frames++; perf.time += realDt;
+  if (perf.time >= 3) {
+    const fps = perf.frames / perf.time; perf.frames = 0; perf.time = 0;
+    if (fps < 48 && settings.autoLevel !== 'low') {
+      settings.autoLevel = settings.autoLevel === 'high' ? 'medium' : 'low'; saveSettings(); applyQuality();
+      toast(tx(`Graphics lowered to <b>${settings.autoLevel}</b> to keep things smooth (Settings → Graphics).`, `Akıcılık için grafik <b>${settings.autoLevel === 'medium' ? 'orta' : 'düşük'}</b> seviyeye alındı (Ayarlar → Grafik).`));
+      track('quality_auto_down', { level: settings.autoLevel, fps: Math.round(fps) });
+    }
+  }
+}
 
 /* --------------------------- COLLISION / RAYS --------------------------- */
 function pushOut(p, r, o) {
@@ -883,7 +931,7 @@ function updateFx(dt) {
   for (let i = booms.length - 1; i >= 0; i--) {
     const b = booms[i]; b.t += dt; const k = b.t / 0.35;
     b.m.scale.setScalar(b.r * (0.3 + k * 0.9)); b.m.material.opacity = Math.max(0, 0.8 * (1 - k));
-    if (k >= 1) { scene.remove(b.m); b.m.material.dispose(); booms.splice(i, 1); }
+    if (k >= 1) { scene.remove(b.m); booms.splice(i, 1); }
   }
   flash.intensity = Math.max(0, flash.intensity - dt * 40);
   portalMeshes.forEach(m => { m.userData.pulse = Math.max(0, m.userData.pulse - dt); const s = 1 + m.userData.pulse * 0.8; m.scale.set(s, s, s); m.material.opacity = 0.35 + m.userData.pulse * 0.6; });
@@ -1132,7 +1180,7 @@ function updateProjs(dt) {
         else if (hitWall || p.life <= 0) { dead = true; burst(pos, 0x3ddc97, 6, 3, 0.3); }
       }
     }
-    if (dead) { scene.remove(p.m); p.m.material.dispose(); projs.splice(i, 1); }
+    if (dead) { scene.remove(p.m); projs.splice(i, 1); }
   }
 }
 
@@ -1187,7 +1235,7 @@ function makeBug(type) {
   const em = fadeable ? Object.assign(eyeMat.clone(), { transparent: true }) : eyeMat;
   const pm = fadeable ? Object.assign(pupilMat.clone(), { transparent: true }) : pupilMat;
   const lm = fadeable ? Object.assign(legMat.clone(), { transparent: true }) : legMat;
-  const body = new THREE.Mesh(sphGeo, mat); body.scale.set(r, r * 0.7, r * 1.3); body.position.y = r * 0.8; body.castShadow = true; g.add(body);
+  const body = new THREE.Mesh(sphGeo, mat); body.scale.set(r, r * 0.7, r * 1.3); body.position.y = r * 0.8; body.castShadow = liveShadows(); g.add(body);
   const head = new THREE.Mesh(sphGeo, mat); head.scale.setScalar(r * 0.55); head.position.set(0, r * 0.95, -r * 1.25); g.add(head);
   for (const s of [-1, 1]) {
     const e = new THREE.Mesh(eyeGeo, em); e.scale.setScalar(r * 0.17); e.position.set(s * r * 0.22, r * 1.12, -r * 1.68); g.add(e);
@@ -1263,10 +1311,9 @@ function damageEnemy(e, dmg, dir) {
   if (partner) killEnemy(partner);
   return true;
 }
-function removeTether(e) { if (e && e.tether) { scene.remove(e.tether); e.tether.material.dispose(); e.tether = null; } }
+function removeTether(e) { if (e && e.tether) { scene.remove(e.tether); e.tether = null; } }
 function killEnemy(e) {
-  e.dead = true; e.downed = false; scene.remove(e.g); e.mat.dispose();
-  if (e.fade) e.fade.slice(1).forEach(m => m.dispose());
+  e.dead = true; e.downed = false; scene.remove(e.g);
   removeTether(e); removeTether(e.partner);
   burst(e.center, e.T.color, e.type === 'boss' ? 120 : 26, e.type === 'boss' ? 14 : 7, 0.9);
   burst(e.center, 0xffffff, 8, 5, 0.4);
@@ -1286,7 +1333,7 @@ function killEnemy(e) {
 function setAlpha(e, a) {
   e.alpha = a; if (!e.fade) return;
   for (const m of e.fade) m.opacity = a;
-  e.body.castShadow = a > 0.5;
+  e.body.castShadow = a > 0.5 && liveShadows();
 }
 function updateEnemies(dt) {
   const ts = breakT > 0 ? 0.25 : 1, edt = dt * ts;
@@ -1391,8 +1438,8 @@ function updateEnemies(dt) {
   }
 }
 function clearEnemies() {
-  for (const e of enemies) { scene.remove(e.g); e.mat.dispose(); removeTether(e); } enemies.length = 0;
-  for (const p of projs) { scene.remove(p.m); p.m.material.dispose(); } projs.length = 0;
+  for (const e of enemies) { scene.remove(e.g); removeTether(e); } enemies.length = 0;
+  for (const p of projs) scene.remove(p.m); projs.length = 0;
   for (const p of pickups) scene.remove(p.m); pickups.length = 0;
   game.boss = null; $('#bossbar').classList.add('hidden'); drone.visible = false;
 }
@@ -1467,7 +1514,7 @@ function startRun(mode) {
   if (mode === 'survival') nextWave();
   if (mode === 'sprint') banner(tx('SPRINT STARTED', 'SPRINT BAŞLADI'), tx('3 minutes · more bugs, more points', '3 dakika · ne kadar bug, o kadar puan'));
   if (mode === 'arena') joinArena();
-  track('run_start', { mode, level: lvlNow(), language: LANG });
+  track('run_start', { mode, level: lvlNow(), language: LANG, quality: qualityLevel(), software_gl: softwareGL ? 1 : 0 });
   setLobbyPresence();
 }
 function nextWave() {
@@ -1829,22 +1876,28 @@ function addFeedMsg(text) { const el = document.createElement('div'); el.classNa
 function buildAbilityHUD() {
   const list = ABILITIES.filter(a => a.cd && has(a.id) && !(pvp() && a.id === 'breakpoint'));
   $('#abil').innerHTML = list.map(a => `<div class="ab" data-id="${a.id}">${a.icon}<div class="cd"></div><div class="k">${a.key === 'Shift' ? '⇧' : esc(loc(a.key))}</div></div>`).join('');
+  abilEls = [...document.querySelectorAll('#abil .ab')].map(el => ({ el, cd: el.querySelector('.cd'), a: ABILITIES.find(x => x.id === el.dataset.id), p: -1, ready: null }));
 }
 function updateHUDWeapons() {
   $('#wslots').innerHTML = WEAPONS.map((w, i) => `<div class="ws ${w.id === curW ? 'on' : ''} ${has(w.id) ? '' : 'lock'}">${i + 1}</div>`).join('');
   $('#wname').textContent = W(curW).name;
 }
 let hudCache = {};
-function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; document.getElementById(id).textContent = v; } }
+const elCache = {};
+const el$ = id => elCache[id] || (elCache[id] = document.getElementById(id));
+function setText(id, v) { if (hudCache[id] !== v) { hudCache[id] = v; el$(id).textContent = v; } }
+function setStyle(id, prop, v) { const k = id + '.' + prop; if (hudCache[k] !== v) { hudCache[k] = v; el$(id).style[prop] = v; } }
+function setVis(id, on) { setStyle(id, 'visibility', on ? 'visible' : 'hidden'); }
+let abilEls = [];
 function updateHUD() {
   setText('hpnum', Math.ceil(P.hp));
-  $('#hpfill').style.width = (P.hp / P.maxHp * 100) + '%';
-  $('#lowhp').style.opacity = P.hp / P.maxHp < 0.3 ? 1 : 0;
-  $('#shieldfx').style.opacity = shieldT > 0 ? 1 : 0;
-  $('#protfx').style.opacity = pvp() && ARENA.protT > 0 && !ARENA.dead ? 1 : 0;
+  setStyle('hpfill', 'width', Math.round(P.hp / P.maxHp * 200) / 2 + '%');
+  setVis('lowhp', P.hp / P.maxHp < 0.3);
+  setVis('shieldfx', shieldT > 0);
+  setVis('protfx', pvp() && ARENA.protT > 0 && !ARENA.dead);
   const s = ws[curW], w = W(curW);
   const ammo = s.rel > 0 ? 'R…' : String(s.mag);
-  if (hudCache.ammo !== ammo + magOf(w)) { hudCache.ammo = ammo + magOf(w); $('#ammo').innerHTML = `${ammo}<small> / ${magOf(w)}</small>`; }
+  if (hudCache.ammo !== ammo + '/' + magOf(w)) { hudCache.ammo = ammo + '/' + magOf(w); el$('ammo').innerHTML = `${ammo}<small> / ${magOf(w)}</small>`; }
   if (game.mode === 'arena') {
     const c = arenaClock();
     setText('statA', ARENA.inter ? 'MVP' : fmtClock(Math.max(0, PLAY_S - c.sec)));
@@ -1854,13 +1907,16 @@ function updateHUD() {
     if (game.mode === 'sprint') setText('statA', fmtClock(game.timeLeft)); else setText('statA', String(game.wave));
     setText('combo', game.combo > 0 ? 'x' + (1 + Math.min(game.combo, 20) * 0.1).toFixed(1) : 'x1.0');
   }
-  document.querySelectorAll('#abil .ab').forEach(el => {
-    const id = el.dataset.id, a = ABILITIES.find(x => x.id === id), cdv = cds[id] || 0, max = a.cd * cdMult();
-    el.querySelector('.cd').style.setProperty('--p', (cdv > 0 ? cdv / max * 100 : 0) + '%'); el.classList.toggle('ready', cdv <= 0);
-  });
+  for (const x of abilEls) {
+    const cdv = cds[x.a.id] || 0, p = cdv > 0 ? Math.ceil(cdv / (x.a.cd * cdMult()) * 50) * 2 : 0, ready = cdv <= 0;
+    if (p !== x.p) { x.p = p; x.cd.style.setProperty('--p', p + '%'); }
+    if (ready !== x.ready) { x.ready = ready; x.el.classList.toggle('ready', ready); }
+  }
   hurtFlash = Math.max(0, hurtFlash - 0.05);
-  $('#vignette').style.boxShadow = `inset 0 0 160px 40px rgba(255,30,60,${(hurtFlash * 0.55).toFixed(2)})`;
-  document.documentElement.style.setProperty('--xh', overT > 0 ? '#ffd23f' : breakT > 0 ? '#36e2ff' : '#fff');
+  const hf = Math.round(hurtFlash * 20) / 20;
+  setVis('vignette', hf > 0); if (hf > 0) setStyle('vignette', 'opacity', String(hf));
+  const xh = overT > 0 ? '#ffd23f' : breakT > 0 ? '#36e2ff' : '#fff';
+  if (hudCache.xh !== xh) { hudCache.xh = xh; el$('crosshair').style.setProperty('--xh', xh); el$('hitmark').style.setProperty('--xh', xh); }
 }
 
 /* ------------------------------ INPUT ------------------------------ */
@@ -1954,7 +2010,8 @@ function renderMenu() {
   if (curTab === 'play') {
     const inArena = lobbyPeers.filter(p => p.presence && p.presence.st === 'arena' && !(p.isMe && p.sameTab)).length;
     const nickPanel = NET.server ? `<div class="panel" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span style="font-weight:600">${tx('Your nickname', 'Takma adın')}</span><input id="qNick" maxlength="16" value="${esc(profile.nick)}" style="background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 12px;font-family:var(--head);font-size:14px;user-select:text;width:200px"><span class="note">${tx('Shown on the leaderboard and in the arena.', 'Liderlik tablosunda ve arenada bu görünür.')}</span></div>` : '';
-    B.innerHTML = `${nickPanel}<div class="panel"><h3>${tx('Choose a mode', 'Mod seç')}</h3><div class="modes">
+    const glWarn = softwareGL ? `<div class="panel" style="margin-bottom:16px;border-color:rgba(255,210,63,.5)"><b style="color:var(--yel)">⚠ ${tx('Hardware acceleration looks off', 'Donanım hızlandırma kapalı görünüyor')}</b><p class="note" style="margin:6px 0 0">${tx('Your browser is drawing the game in software, so it will stutter on any setting. Turn on "Use graphics acceleration when available" in your browser settings and restart the browser.', 'Tarayıcın oyunu ekran kartı yerine işlemciyle çiziyor; bu yüzden her ayarda kasar. Tarayıcı ayarlarında "Kullanılabilir olduğunda grafik hızlandırmayı kullan" seçeneğini açıp tarayıcıyı yeniden başlat.')}</p></div>` : '';
+    B.innerHTML = `${glWarn}${nickPanel}<div class="panel"><h3>${tx('Choose a mode', 'Mod seç')}</h3><div class="modes">
       <button class="mode" data-mode="sprint"><div class="ic">⏱</div><div class="nm">Sprint</div><div class="ds">${tx('3 minutes. Bugs keep speeding up and a Prod Incident erupts halfway. Score as much as you can.', '3 dakika. Buglar giderek hızlanır, ortada bir Prod Incident patlar. En yüksek puanı yap.')}</div><div class="bs">${tx('Best', 'Rekor')}: ${fmt(profile.best.sprint)}</div></button>
       <button class="mode" data-mode="survival"><div class="ic">🌊</div><div class="nm">${modeName('survival')}</div><div class="ds">${tx('Endless waves with a boss every 5th wave. New bug types show up as you go deeper.', 'Sonsuz dalga, her 5. dalgada boss. İlerledikçe yeni bug türleri çıkar.')}</div><div class="bs">${tx('Best', 'Rekor')}: ${profile.best.wave ? tx(`wave ${profile.best.wave}`, `${profile.best.wave}. dalga`) : '—'}</div></button>
       <button class="mode pvp" data-mode="arena" ${CAP.room ? '' : 'disabled'}><div class="ic">⚔</div><div class="nm">${modeName('arena')}</div><div class="ds">${CAP.room ? tx('Real-time free-for-all with friends. 5-minute rounds with an MVP at the end. Upgrades are off; XP still counts.', 'Arkadaşlarınla gerçek zamanlı herkes herkese karşı. 5 dakikalık maçlar, sonunda MVP. Geliştirmeler kapalı; XP yine sayılır.') : tx('The live arena is unavailable: could not reach the game server.', 'Canlı arena şu an kapalı: oyun sunucusuna bağlanılamadı.')}</div><div class="bs">${CAP.room ? `<span class="live">${inArena ? tx(`${inArena} IN THE ARENA`, `${inArena} KİŞİ ARENADA`) : tx('LIVE', 'CANLI')}</span>` : ''}</div></button>
@@ -1999,12 +2056,17 @@ function renderMenu() {
       <div class="set"><label for="sNick">${tx('Player name', 'Oyuncu adı')}</label><input type="text" id="sNick" maxlength="16" placeholder="${esc(CAP.myName || tx('Optional nickname', 'İsteğe bağlı takma ad'))}" value="${esc(profile.nick)}"></div>
       <div class="set"><label for="sSens">${tx('Mouse sensitivity', 'Fare hassasiyeti')}</label><input type="range" id="sSens" min="0.2" max="3" step="0.05" value="${settings.sens}"><output>${(+settings.sens).toFixed(2)}</output></div>
       <div class="set"><label for="sFov">${tx('Field of view (FOV)', 'Görüş açısı (FOV)')}</label><input type="range" id="sFov" min="65" max="105" step="1" value="${settings.fov}"><output>${settings.fov}</output></div>
+      <div class="set"><span>${tx('Graphics', 'Grafik')}</span><div class="seg" id="sQual">${[['auto', tx('Auto', 'Otomatik')], ['high', tx('High', 'Yüksek')], ['medium', tx('Medium', 'Orta')], ['low', tx('Low', 'Düşük')]].map(([k, n]) => `<button data-q="${k}" class="${settings.quality === k ? 'on' : ''}">${n}${k === 'auto' && settings.quality === 'auto' ? ` · ${{ high: tx('high', 'yüksek'), medium: tx('medium', 'orta'), low: tx('low', 'düşük') }[settings.autoLevel]}` : ''}</button>`).join('')}</div></div>
+      ${GPU ? `<p class="note" style="margin:-6px 0 14px">GPU: ${esc(GPU.slice(0, 90))}${softwareGL ? ` · <b style="color:var(--yel)">${tx('software rendering', 'yazılımla çizim')}</b>` : ''}</p>` : ''}
+      <div class="set"><span>${tx('FPS counter', 'FPS göstergesi')}</span><div class="seg"><button id="sFps" class="${settings.showFps ? 'on' : ''}">${settings.showFps ? tx('On', 'Açık') : tx('Off', 'Kapalı')}</button></div></div>
       <div class="set"><label for="sVol">${tx('Volume', 'Ses')}</label><input type="range" id="sVol" min="0" max="1" step="0.05" value="${settings.vol}"><output>${Math.round(settings.vol * 100)}%</output></div>
       <p class="note">${NET.server ? tx('Your progress is saved in this browser; your records go to the shared leaderboard.', 'İlerlemen bu tarayıcıda saklanıyor; rekorların ortak liderlik tablosuna gönderiliyor.') : CAP.db && CAP.uid ? tx('Your progress is saved to your account; pick up where you left off on any device.', 'İlerlemen hesabına kaydediliyor; başka cihazdan açınca kaldığın yerden devam edersin.') : tx('Your progress is saved in this browser.', 'İlerlemen bu tarayıcıda saklanıyor.')}</p></div>`;
     B.querySelectorAll('.langsw button').forEach(b => b.onclick = () => setLang(b.dataset.lang));
     const nick = $('#sNick'); nick.onchange = () => { const v = cleanNick(nick.value); if (v || !NET.server) profile.nick = v; nick.value = profile.nick; saveAll(); renderProfileCard(); setLobbyPresence(); };
     const bind = (id, key, f) => { const el = $('#' + id); el.oninput = () => { settings[key] = +el.value; el.nextElementSibling.textContent = f(settings[key]); saveSettings(); applySettings(); }; };
     bind('sSens', 'sens', v => v.toFixed(2)); bind('sFov', 'fov', v => v); bind('sVol', 'vol', v => Math.round(v * 100) + '%');
+    B.querySelectorAll('#sQual button').forEach(b => b.onclick = () => { settings.quality = b.dataset.q; if (b.dataset.q === 'auto') settings.autoLevel = 'high'; saveSettings(); applyQuality(); renderMenu(); track('quality_set', { quality: settings.quality }); });
+    $('#sFps').onclick = () => { settings.showFps = !settings.showFps; saveSettings(); $('#fps').classList.toggle('hidden', !settings.showFps); renderMenu(); };
   }
 }
 function applySettings() { camera.fov = settings.fov; camera.updateProjectionMatrix(); if (master) master.gain.value = settings.vol; }
@@ -2060,7 +2122,8 @@ function renderOnline() {
 let last = performance.now(), menuT = 0, lobbyT = 0;
 function loop(now) {
   requestAnimationFrame(loop);
-  const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  const realDt = Math.max(0, (now - last) / 1000), dt = Math.min(0.05, realDt); last = now;
+  trackPerf(realDt);
   if (game.state === 'playing' && !game.paused) {
     game.t += dt;
     if (game.mode !== 'arena' || !ARENA.dead) updatePlayer(dt);
@@ -2092,13 +2155,26 @@ function loop(now) {
   renderer.render(scene, camera);
   if (game.state === 'playing') { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
 }
+function prewarm() {
+  // compile every material variant once up front, so the first ghost/boss/explosion doesn't stutter
+  const tmp = [];
+  for (const t of Object.keys(ETYPES)) { const b = makeBug(t); b.g.position.set(0, -50, 0); scene.add(b.g); tmp.push(b.g); }
+  const extras = [new THREE.Mesh(orbGeo, new THREE.MeshBasicMaterial({ color: 0xffffff })), new THREE.Mesh(nadeGeo, new THREE.MeshStandardMaterial({ color: 0x3ddc97, emissive: 0x3ddc97 })),
+    new THREE.Mesh(puGeo, new THREE.MeshStandardMaterial({ color: 0x3ddc97, emissive: 0x3ddc97 })), new THREE.Mesh(boomGeo, new THREE.MeshBasicMaterial({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false })), makeAvatar(0x36e2ff)];
+  for (const m of extras) { m.position.set(0, -50, 0); scene.add(m); tmp.push(m); }
+  try { renderer.compile(scene, camera); } catch (e) { }
+  tmp.forEach(m => scene.remove(m));
+}
+$('#fps').classList.toggle('hidden', !settings.showFps);
+applyQuality();
 applyLang();
 buildViewmodel();
+prewarm();
 renderMenu();
 requestAnimationFrame(loop);
 bootCaps();
 // debug hook for automated checks
-if (/[?&]debug/.test(location.search) || location.protocol === 'file:') window.__bugavi = { game, P, enemies, startRun, endRun, profile: () => profile, spawnEnemy, fire, ARENA, NET, setLang, useGrapple, useBlink, useShield, switchW };
+if (/[?&]debug/.test(location.search) || location.protocol === 'file:') window.__bugavi = { QUALITY, applyQuality, settings, game, P, enemies, startRun, endRun, profile: () => profile, spawnEnemy, fire, ARENA, NET, setLang, useGrapple, useBlink, useShield, switchW };
 
 </script>
 </body>
