@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bug Avı</title>
+<title>Bug Hunt</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PVYWF3KK5T"></script>
 <script>
@@ -209,20 +209,33 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 .unl div b{color:var(--grn)}
 .row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
 .newrec{color:var(--yel);font-weight:700;letter-spacing:.1em;font-size:13px}
+#shieldfx{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(54,226,255,.55);opacity:0;transition:opacity .15s}
+#protfx{position:absolute;inset:0;box-shadow:inset 0 0 90px 18px rgba(255,255,255,.35);opacity:0;transition:opacity .2s}
+#mvp{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(460px,90vw);text-align:center;padding:20px 24px}
+#mvp .crown{font-size:40px;line-height:1}
+#mvp .who{font-size:30px;font-weight:700;color:var(--yel);text-shadow:0 0 18px rgba(255,210,63,.5)}
+#mvp table{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px}
+#mvp td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+#mvp td.n{font-family:var(--mono);text-align:right}
+#mvp .next{margin-top:10px;font-size:13px;color:var(--muted)}
+.fe.sys{color:var(--yel)}
+.langsw{display:flex;gap:4px;align-self:center}
+.langsw button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:5px 9px;font-size:12px;font-weight:700;letter-spacing:.08em}
+.langsw button.on{color:#071018;background:var(--cyan);border-color:var(--cyan)}
 </style>
 </head>
 <body>
 <div id="game"></div>
 
 <div id="hud" class="hidden">
-  <div id="vignette"></div><div id="lowhp"></div>
+  <div id="vignette"></div><div id="lowhp"></div><div id="shieldfx"></div><div id="protfx"></div>
   <div id="dmgdir"></div>
   <div id="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
   <div id="hitmark"><i></i><i></i><i></i><i></i></div>
   <div id="popups"></div>
   <div id="topbar" class="hudbox">
-    <div class="stat"><div class="lbl" id="lblA">SÜRE</div><div class="v" id="statA">3:00</div></div>
-    <div class="stat"><div class="lbl">PUAN</div><div class="v" id="statScore">0</div></div>
+    <div class="stat"><div class="lbl" id="lblA">TIME</div><div class="v" id="statA">3:00</div></div>
+    <div class="stat"><div class="lbl" id="lblB">SCORE</div><div class="v" id="statScore">0</div></div>
     <div class="stat"><div class="lbl" id="lblC">COMBO</div><div class="v" id="combo">x1.0</div></div>
   </div>
   <div id="bossbar" class="hidden"><div class="bn">⚠ PROD INCIDENT ⚠</div><div class="bb"><div id="bossfill"></div></div></div>
@@ -242,6 +255,7 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
   <div id="scoreboard" class="hudbox hidden"></div>
   <div id="respawn" class="hudbox hidden"><div class="t">BUILD FAILED</div><div id="respawnS"></div></div>
   <div id="netnote" class="hudbox hidden"></div>
+  <div id="mvp" class="hudbox hidden"></div>
 </div>
 
 <div id="toasts"></div>
@@ -249,30 +263,30 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 <div id="menu" class="overlay">
   <div class="shell">
     <div class="top">
-      <div class="logo"><div class="mk">🐞</div><div><h1>BUG AVI</h1><p>AI kodu yazarken sen bugları vur.</p></div></div>
-      <div class="pcard" id="pcard"></div>
+      <div class="logo"><div class="mk">🐞</div><div><h1 data-i18n="title">BUG HUNT</h1><p data-i18n="tagline"></p></div></div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="langsw"><button data-lang="en">EN</button><button data-lang="tr">TR</button></div><div class="pcard" id="pcard"></div></div>
     </div>
     <div class="tabs" id="tabs">
-      <button class="tab on" data-tab="play">OYNA</button>
-      <button class="tab" data-tab="arsenal">CEPHANELİK</button>
-      <button class="tab" data-tab="shop">GELİŞTİRMELER</button>
-      <button class="tab" data-tab="lb">LİDERLİK</button>
-      <button class="tab" data-tab="settings">AYARLAR</button>
+      <button class="tab on" data-tab="play" data-i18n="tabPlay">PLAY</button>
+      <button class="tab" data-tab="arsenal" data-i18n="tabArsenal">ARSENAL</button>
+      <button class="tab" data-tab="shop" data-i18n="tabShop">UPGRADES</button>
+      <button class="tab" data-tab="lb" data-i18n="tabLb">LEADERBOARD</button>
+      <button class="tab" data-tab="settings" data-i18n="tabSettings">SETTINGS</button>
     </div>
     <div class="body">
       <div id="tabBody"></div>
-      <div class="panel"><h3 id="onlineH">Çevrimiçi</h3><div class="online" id="online"></div></div>
+      <div class="panel"><h3 id="onlineH">Online</h3><div class="online" id="online"></div></div>
     </div>
   </div>
 </div>
 
 <div id="pause" class="overlay hidden">
   <div class="dialog">
-    <h2>DURAKLATILDI</h2>
-    <div class="sub" id="pauseSub">Breakpoint'e takıldın.</div>
+    <h2 data-i18n="paused">PAUSED</h2>
+    <div class="sub" id="pauseSub"></div>
     <div class="row">
-      <button class="btn big" id="btnResume">Devam et</button>
-      <button class="btn big ghost" id="btnQuit">Turu bitir</button>
+      <button class="btn big" id="btnResume" data-i18n="resume">Resume</button>
+      <button class="btn big ghost" id="btnQuit" data-i18n="endRun">End run</button>
     </div>
     <p class="note" id="pauseNote" style="margin-top:16px"></p>
   </div>

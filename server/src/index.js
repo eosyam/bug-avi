@@ -51,7 +51,7 @@ export class Room extends DurableObject {
     this.ctx.acceptWebSocket(server);
     server.serializeAttachment({ peer, p: {}, w: 0, n: 0 });
     const others = this.ctx.getWebSockets().filter(w => w !== server).map(w => { const a = w.deserializeAttachment() || {}; return { peer: a.peer, p: a.p || {} }; }).filter(x => x.peer);
-    server.send(JSON.stringify({ t: 'hello', peer, peers: others }));
+    server.send(JSON.stringify({ t: 'hello', peer, peers: others, time: Date.now() }));
     this.broadcast({ t: 'join', peer, p: {} }, server);
     return new Response(null, { status: 101, webSocket: client });
   }

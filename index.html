@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Bug Avı</title>
+<title>Bug Hunt</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-PVYWF3KK5T"></script>
 <script>
@@ -209,20 +209,33 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 .unl div b{color:var(--grn)}
 .row{display:flex;gap:10px;justify-content:center;margin-top:16px;flex-wrap:wrap}
 .newrec{color:var(--yel);font-weight:700;letter-spacing:.1em;font-size:13px}
+#shieldfx{position:absolute;inset:0;box-shadow:inset 0 0 120px 30px rgba(54,226,255,.55);opacity:0;transition:opacity .15s}
+#protfx{position:absolute;inset:0;box-shadow:inset 0 0 90px 18px rgba(255,255,255,.35);opacity:0;transition:opacity .2s}
+#mvp{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(460px,90vw);text-align:center;padding:20px 24px}
+#mvp .crown{font-size:40px;line-height:1}
+#mvp .who{font-size:30px;font-weight:700;color:var(--yel);text-shadow:0 0 18px rgba(255,210,63,.5)}
+#mvp table{width:100%;border-collapse:collapse;margin-top:12px;font-size:15px}
+#mvp td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:left}
+#mvp td.n{font-family:var(--mono);text-align:right}
+#mvp .next{margin-top:10px;font-size:13px;color:var(--muted)}
+.fe.sys{color:var(--yel)}
+.langsw{display:flex;gap:4px;align-self:center}
+.langsw button{background:transparent;border:1px solid var(--line);color:var(--muted);border-radius:7px;padding:5px 9px;font-size:12px;font-weight:700;letter-spacing:.08em}
+.langsw button.on{color:#071018;background:var(--cyan);border-color:var(--cyan)}
 </style>
 </head>
 <body>
 <div id="game"></div>
 
 <div id="hud" class="hidden">
-  <div id="vignette"></div><div id="lowhp"></div>
+  <div id="vignette"></div><div id="lowhp"></div><div id="shieldfx"></div><div id="protfx"></div>
   <div id="dmgdir"></div>
   <div id="crosshair"><i></i><i></i><i></i><i></i><b></b></div>
   <div id="hitmark"><i></i><i></i><i></i><i></i></div>
   <div id="popups"></div>
   <div id="topbar" class="hudbox">
-    <div class="stat"><div class="lbl" id="lblA">SÜRE</div><div class="v" id="statA">3:00</div></div>
-    <div class="stat"><div class="lbl">PUAN</div><div class="v" id="statScore">0</div></div>
+    <div class="stat"><div class="lbl" id="lblA">TIME</div><div class="v" id="statA">3:00</div></div>
+    <div class="stat"><div class="lbl" id="lblB">SCORE</div><div class="v" id="statScore">0</div></div>
     <div class="stat"><div class="lbl" id="lblC">COMBO</div><div class="v" id="combo">x1.0</div></div>
   </div>
   <div id="bossbar" class="hidden"><div class="bn">⚠ PROD INCIDENT ⚠</div><div class="bb"><div id="bossfill"></div></div></div>
@@ -242,6 +255,7 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
   <div id="scoreboard" class="hudbox hidden"></div>
   <div id="respawn" class="hudbox hidden"><div class="t">BUILD FAILED</div><div id="respawnS"></div></div>
   <div id="netnote" class="hudbox hidden"></div>
+  <div id="mvp" class="hudbox hidden"></div>
 </div>
 
 <div id="toasts"></div>
@@ -249,30 +263,30 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 <div id="menu" class="overlay">
   <div class="shell">
     <div class="top">
-      <div class="logo"><div class="mk">🐞</div><div><h1>BUG AVI</h1><p>AI kodu yazarken sen bugları vur.</p></div></div>
-      <div class="pcard" id="pcard"></div>
+      <div class="logo"><div class="mk">🐞</div><div><h1 data-i18n="title">BUG HUNT</h1><p data-i18n="tagline"></p></div></div>
+      <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap"><div class="langsw"><button data-lang="en">EN</button><button data-lang="tr">TR</button></div><div class="pcard" id="pcard"></div></div>
     </div>
     <div class="tabs" id="tabs">
-      <button class="tab on" data-tab="play">OYNA</button>
-      <button class="tab" data-tab="arsenal">CEPHANELİK</button>
-      <button class="tab" data-tab="shop">GELİŞTİRMELER</button>
-      <button class="tab" data-tab="lb">LİDERLİK</button>
-      <button class="tab" data-tab="settings">AYARLAR</button>
+      <button class="tab on" data-tab="play" data-i18n="tabPlay">PLAY</button>
+      <button class="tab" data-tab="arsenal" data-i18n="tabArsenal">ARSENAL</button>
+      <button class="tab" data-tab="shop" data-i18n="tabShop">UPGRADES</button>
+      <button class="tab" data-tab="lb" data-i18n="tabLb">LEADERBOARD</button>
+      <button class="tab" data-tab="settings" data-i18n="tabSettings">SETTINGS</button>
     </div>
     <div class="body">
       <div id="tabBody"></div>
-      <div class="panel"><h3 id="onlineH">Çevrimiçi</h3><div class="online" id="online"></div></div>
+      <div class="panel"><h3 id="onlineH">Online</h3><div class="online" id="online"></div></div>
     </div>
   </div>
 </div>
 
 <div id="pause" class="overlay hidden">
   <div class="dialog">
-    <h2>DURAKLATILDI</h2>
-    <div class="sub" id="pauseSub">Breakpoint'e takıldın.</div>
+    <h2 data-i18n="paused">PAUSED</h2>
+    <div class="sub" id="pauseSub"></div>
     <div class="row">
-      <button class="btn big" id="btnResume">Devam et</button>
-      <button class="btn big ghost" id="btnQuit">Turu bitir</button>
+      <button class="btn big" id="btnResume" data-i18n="resume">Resume</button>
+      <button class="btn big ghost" id="btnQuit" data-i18n="endRun">End run</button>
     </div>
     <p class="note" id="pauseNote" style="margin-top:16px"></p>
   </div>
@@ -293,50 +307,79 @@ table.lb .ttl{font-size:11px;color:var(--muted)}
 <script>
 'use strict';
 /* =====================================================================
-   BUG AVI — casual arena FPS with progression, leaderboard and live PvP
+   BUG HUNT / BUG AVI — casual arena FPS with progression, leaderboard and live PvP
    ===================================================================== */
 const $ = s => document.querySelector(s);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const rand = (a, b) => a + Math.random() * (b - a);
 const lerp = (a, b, t) => a + (b - a) * t;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const fmt = n => Math.floor(n).toLocaleString('tr-TR');
 const r2 = n => Math.round(n * 100) / 100;
 const V3 = THREE.Vector3;
 const track = (name, params) => { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) { } };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+/* ------------------------------ SETTINGS + LANGUAGE ------------------------------ */
+const LS_KEY = 'bugavi.profile.v1', LS_SET = 'bugavi.settings.v1';
+let settings = { sens: 1, fov: 80, vol: 0.6, lang: 'en' };
+try { Object.assign(settings, JSON.parse(localStorage.getItem(LS_SET) || '{}')); } catch (e) { }
+if (settings.lang !== 'tr' && settings.lang !== 'en') settings.lang = 'en';
+let LANG = settings.lang;
+const tx = (en, tr) => LANG === 'tr' ? tr : en;
+const loc = v => Array.isArray(v) ? tx(v[0], v[1]) : v;
+const fmt = n => Math.floor(n).toLocaleString(LANG === 'tr' ? 'tr-TR' : 'en-US');
+const saveSettings = () => { try { localStorage.setItem(LS_SET, JSON.stringify(settings)); } catch (e) { } };
+const STATIC = {
+  title: ['BUG HUNT', 'BUG AVI'], tagline: ['Squash bugs while the AI writes your code.', 'AI kodu yazarken sen bugları vur.'],
+  tabPlay: ['PLAY', 'OYNA'], tabArsenal: ['ARSENAL', 'CEPHANELİK'], tabShop: ['UPGRADES', 'GELİŞTİRMELER'], tabLb: ['LEADERBOARD', 'LİDERLİK'], tabSettings: ['SETTINGS', 'AYARLAR'],
+  paused: ['PAUSED', 'DURAKLATILDI'], resume: ['Resume', 'Devam et'], endRun: ['End run', 'Turu bitir'],
+};
+function applyLang() {
+  document.documentElement.lang = LANG;
+  document.title = tx('Bug Hunt', 'Bug Avı');
+  document.querySelectorAll('[data-i18n]').forEach(el => { const v = STATIC[el.dataset.i18n]; if (v) el.textContent = loc(v); });
+  document.querySelectorAll('.langsw button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+}
+function setLang(l) {
+  if (l !== 'en' && l !== 'tr') return;
+  LANG = l; settings.lang = l; saveSettings(); applyLang(); renderMenu(); track('language_change', { language: l });
+}
+
 /* ---------------------------- GAME DATA ---------------------------- */
 const WEAPONS = [
-  { id: 'pistol', name: 'console.log()', lvl: 1, dmg: 26, rate: 3.4, mag: 12, reload: 0.95, spread: 0.006, pellets: 1, icon: '🔫', desc: 'Güvenilir, isabetli. Her zaman yanında.' },
-  { id: 'smg', name: 'Hotfix-9', lvl: 3, dmg: 11, rate: 12, mag: 36, reload: 1.5, spread: 0.03, pellets: 1, icon: '⚡', desc: 'Hızlı ve dağınık. Tıpkı cuma akşamı hotfix gibi.' },
-  { id: 'shotgun', name: 'Refactor', lvl: 5, dmg: 13, rate: 1.3, mag: 6, reload: 1.7, spread: 0.075, pellets: 9, icon: '💥', desc: 'Yakın mesafede her şeyi baştan yazar.' },
-  { id: 'rail', name: 'Root Cause', lvl: 8, dmg: 160, rate: 0.85, mag: 4, reload: 2.0, spread: 0, pellets: 1, pierce: true, icon: '🎯', desc: 'Sıradaki tüm bugları delip geçer.' },
-  { id: 'launcher', name: 'rm -rf', lvl: 11, dmg: 120, rate: 1.0, mag: 3, reload: 2.2, spread: 0, pellets: 1, projectile: true, splash: 4.8, icon: '🚀', desc: 'Alan hasarı. Geri dönüşü yok.' },
+  { id: 'pistol', name: 'console.log()', lvl: 1, dmg: 26, rate: 3.4, mag: 12, reload: 0.95, spread: 0.006, pellets: 1, icon: '🔫', desc: ['Reliable and accurate. Always by your side.', 'Güvenilir, isabetli. Her zaman yanında.'] },
+  { id: 'smg', name: 'Hotfix-9', lvl: 3, dmg: 11, rate: 12, mag: 36, reload: 1.5, spread: 0.03, pellets: 1, icon: '⚡', desc: ['Fast and messy, like a Friday-night hotfix.', 'Hızlı ve dağınık, tıpkı cuma akşamı hotfix gibi.'] },
+  { id: 'shotgun', name: 'Refactor', lvl: 5, dmg: 13, rate: 1.3, mag: 6, reload: 1.7, spread: 0.075, pellets: 9, icon: '💥', desc: ['Rewrites everything up close.', 'Yakın mesafede her şeyi baştan yazar.'] },
+  { id: 'laser', name: 'Ricochet', lvl: 7, dmg: 34, rate: 2.2, mag: 10, reload: 1.4, spread: 0, pellets: 1, bounces: 3, icon: '🔆', desc: ['A laser that bounces off walls up to 3 times and pierces bugs.', 'Duvarlardan 3 kez seken, bugları delip geçen lazer.'] },
+  { id: 'rail', name: 'Root Cause', lvl: 8, dmg: 160, rate: 0.85, mag: 4, reload: 2.0, spread: 0, pellets: 1, pierce: true, icon: '🎯', desc: ['Pierces every bug in a line.', 'Sıradaki tüm bugları delip geçer.'] },
+  { id: 'launcher', name: 'rm -rf', lvl: 11, dmg: 120, rate: 1.0, mag: 3, reload: 2.2, spread: 0, pellets: 1, projectile: true, splash: 4.8, icon: '🚀', desc: ['Splash damage. No undo.', 'Alan hasarı. Geri dönüşü yok.'] },
 ];
 const ABILITIES = [
-  { id: 'dash', name: 'Dash', key: 'Shift', lvl: 2, cd: 2.5, icon: '💨', desc: 'Baktığın yöne hızla atıl.' },
-  { id: 'djump', name: 'Çift Zıplama', key: 'Space ×2', lvl: 4, icon: '⏫', desc: 'Havada bir kez daha zıpla; kabinlerin üstüne çık.' },
-  { id: 'grenade', name: 'git reset --hard', key: 'G', lvl: 6, cd: 7, icon: '💣', desc: 'Sekip patlayan el bombası.' },
-  { id: 'breakpoint', name: 'Breakpoint', key: 'Q', lvl: 9, cd: 18, dur: 4, icon: '⏸', desc: 'Zamanı dondur: 4 sn boyunca buglar %25 hızda.' },
-  { id: 'drone', name: 'Pair Programming', key: 'Pasif', lvl: 14, icon: '🛸', desc: 'Omzunda uçan drone en yakın buga ateş eder.' },
+  { id: 'dash', name: 'Dash', key: 'Shift', lvl: 2, cd: 2.5, icon: '💨', desc: ['Burst forward in the direction you move.', 'Hareket ettiğin yöne hızla atıl.'] },
+  { id: 'djump', name: ['Double Jump', 'Çift Zıplama'], key: 'Space ×2', lvl: 4, icon: '⏫', desc: ['Jump again mid-air to reach the server racks.', 'Havada bir kez daha zıpla; kabinlerin üstüne çık.'] },
+  { id: 'grapple', name: ['Grapple', 'Kanca'], key: 'E', lvl: 5, cd: 3.5, icon: '🪝', desc: ['Fire a hook and zip to any wall or rooftop.', 'Kancayı fırlat, duvara ya da çatıya çekil.'] },
+  { id: 'grenade', name: 'git reset --hard', key: 'G', lvl: 6, cd: 7, icon: '💣', desc: ['A bouncing grenade.', 'Sekip patlayan el bombası.'] },
+  { id: 'shield', name: ['Shield', 'Kalkan'], key: 'F', lvl: 8, cd: 14, dur: 2.5, icon: '🔰', desc: ['Block all damage for 2.5 s.', '2,5 sn boyunca tüm hasarı engelle.'] },
+  { id: 'breakpoint', name: 'Breakpoint', key: 'Q', lvl: 9, cd: 18, dur: 4, icon: '⏸', desc: ['Slow time: bugs move at 25% speed for 4 s.', 'Zamanı yavaşlat: 4 sn boyunca buglar %25 hızda.'] },
+  { id: 'blink', name: ['Blink', 'Işınlanma'], key: 'V', lvl: 12, cd: 7, icon: '✨', desc: ['Teleport up to 12 m in the direction you look.', 'Baktığın yöne 12 m ışınlan.'] },
+  { id: 'drone', name: 'Pair Programming', key: ['Passive', 'Pasif'], lvl: 14, icon: '🛸', desc: ['A drone on your shoulder shoots the nearest bug.', 'Omzunda uçan drone en yakın buga ateş eder.'] },
 ];
 const UPGRADES = [
-  { id: 'dmg', name: 'Hasar', icon: '🗡', max: 10, base: 40, desc: l => `+${l * 8}% silah hasarı` },
-  { id: 'hp', name: 'Dayanıklılık', icon: '🛡', max: 10, base: 40, desc: l => `+${l * 15} maksimum uptime` },
-  { id: 'spd', name: 'Çeviklik', icon: '👟', max: 8, base: 50, desc: l => `+${l * 4}% hareket hızı` },
-  { id: 'rel', name: 'Şarjör', icon: '🔋', max: 8, base: 50, desc: l => `-${l * 7}% şarjör süresi, +${l * 10}% kapasite` },
-  { id: 'xpb', name: 'Öğrenme Hızı', icon: '📚', max: 10, base: 60, desc: l => `+${l * 6}% XP` },
-  { id: 'cd', name: 'CI Pipeline', icon: '⚙', max: 6, base: 70, desc: l => `-${l * 8}% yetenek bekleme süresi` },
+  { id: 'dmg', name: ['Damage', 'Hasar'], icon: '🗡', max: 10, base: 40, desc: l => tx(`+${l * 8}% weapon damage`, `+${l * 8}% silah hasarı`) },
+  { id: 'hp', name: ['Toughness', 'Dayanıklılık'], icon: '❤️', max: 10, base: 40, desc: l => tx(`+${l * 15} max uptime`, `+${l * 15} maksimum uptime`) },
+  { id: 'spd', name: ['Agility', 'Çeviklik'], icon: '👟', max: 8, base: 50, desc: l => tx(`+${l * 4}% move speed`, `+${l * 4}% hareket hızı`) },
+  { id: 'rel', name: ['Magazine', 'Şarjör'], icon: '🔋', max: 8, base: 50, desc: l => tx(`-${l * 7}% reload time, +${l * 10}% capacity`, `-${l * 7}% şarjör süresi, +${l * 10}% kapasite`) },
+  { id: 'xpb', name: ['Fast Learner', 'Öğrenme Hızı'], icon: '📚', max: 10, base: 60, desc: l => `+${l * 6}% XP` },
+  { id: 'cd', name: 'CI Pipeline', icon: '⚙', max: 6, base: 70, desc: l => tx(`-${l * 8}% ability cooldowns`, `-${l * 8}% yetenek bekleme süresi`) },
 ];
 const upCost = (u, l) => Math.round(u.base * Math.pow(1.45, l));
 const TINTS = [
-  { name: 'Camgöbeği', c: 0x36e2ff, lvl: 1 }, { name: 'Alarm', c: 0xff8c42, lvl: 3 }, { name: 'Toksik', c: 0x7cff4f, lvl: 5 },
-  { name: 'Magenta', c: 0xff3d81, lvl: 7 }, { name: 'Mor Duman', c: 0xa66bff, lvl: 10 }, { name: 'Altın', c: 0xffd23f, lvl: 15 },
-  { name: 'Beyaz Işık', c: 0xffffff, lvl: 20 }, { name: 'RGB', c: -1, lvl: 25 },
+  { name: ['Cyan', 'Camgöbeği'], c: 0x36e2ff, lvl: 1 }, { name: ['Alarm', 'Alarm'], c: 0xff8c42, lvl: 3 }, { name: ['Toxic', 'Toksik'], c: 0x7cff4f, lvl: 5 },
+  { name: 'Magenta', c: 0xff3d81, lvl: 7 }, { name: ['Purple Haze', 'Mor Duman'], c: 0xa66bff, lvl: 10 }, { name: ['Gold', 'Altın'], c: 0xffd23f, lvl: 15 },
+  { name: ['White Light', 'Beyaz Işık'], c: 0xffffff, lvl: 20 }, { name: 'RGB', c: -1, lvl: 25 },
 ];
-const TITLES = [[1, 'Stajyer'], [3, 'Junior Dev'], [6, 'Mid-Level Dev'], [10, 'Senior Dev'], [14, 'Staff Engineer'], [18, 'Principal Engineer'], [22, 'Distinguished Eng.'], [26, '10x Engineer'], [30, 'CTO']];
-const titleFor = L => { let t = TITLES[0][1]; for (const [l, n] of TITLES) if (L >= l) t = n; return t; };
+const TITLES = [[1, ['Intern', 'Stajyer']], [3, 'Junior Dev'], [6, 'Mid-Level Dev'], [10, 'Senior Dev'], [14, 'Staff Engineer'], [18, 'Principal Engineer'], [22, 'Distinguished Eng.'], [26, '10x Engineer'], [30, 'CTO']];
+const titleFor = L => { let t = TITLES[0][1]; for (const [l, n] of TITLES) if (L >= l) t = n; return loc(t); };
 const ETYPES = {
   nullptr: { name: 'NullPointer', hp: 34, speed: 3.6, dmg: 10, r: 0.55, pts: 100, color: 0xff4d6d },
   race: { name: 'RaceCondition', hp: 16, speed: 7.0, dmg: 6, r: 0.4, pts: 120, color: 0xffd23f },
@@ -344,19 +387,24 @@ const ETYPES = {
   mini: { name: 'Conflict', hp: 22, speed: 4.6, dmg: 6, r: 0.38, pts: 50, color: 0xe0aaff },
   flaky: { name: 'FlakyTest', hp: 44, speed: 3.2, dmg: 9, r: 0.5, pts: 200, color: 0x3ddc97 },
   leak: { name: 'MemoryLeak', hp: 150, speed: 1.9, dmg: 22, r: 0.8, pts: 260, color: 0x4cc9f0 },
+  glitch: { name: 'Glitch', hp: 55, speed: 3.3, dmg: 11, r: 0.5, pts: 170, color: 0x7cff4f, hint: ['walks through walls', 'duvarlardan geçer'] },
+  ghost: { name: 'Heisenbug', hp: 50, speed: 3.5, dmg: 12, r: 0.55, pts: 220, color: 0xc8d2ff, hint: ['vanishes when you look at it', 'baktığında görünmez olur'] },
+  twin: { name: 'Deadlock', hp: 70, speed: 3.0, dmg: 10, r: 0.55, pts: 180, color: 0xff8c42, hint: ['twins: kill both within 3 s or they revive', 'ikizler: 3 sn içinde ikisini de öldür, yoksa dirilir'] },
   boss: { name: 'PROD INCIDENT', hp: 1400, speed: 2.2, dmg: 30, r: 1.7, pts: 2500, color: 0xff2a2a },
 };
 const ACH = [
-  { id: 'first', name: 'Hello World', desc: 'İlk bugını öldür' },
-  { id: 'combo', name: 'Pipeline Yeşil', desc: 'x3.0 combo yap' },
-  { id: 'boss', name: 'Incident Commander', desc: 'Bir Prod Incident\'ı indir' },
-  { id: 'sprint10', name: 'Velocity', desc: 'Sprint\'te 10.000 puan' },
-  { id: 'sprint25', name: 'Story Point Canavarı', desc: 'Sprint\'te 25.000 puan' },
-  { id: 'wave10', name: 'Uptime 99.9', desc: 'Hayatta Kal\'da 10. dalga' },
-  { id: 'k100', name: 'Bug Bounty', desc: 'Toplam 100 bug' },
-  { id: 'k1000', name: 'Zero Defect', desc: 'Toplam 1.000 bug' },
-  { id: 'frag', name: 'Code Review', desc: 'Arena\'da bir iş arkadaşını vur' },
-  { id: 'lvl10', name: 'Terfi', desc: 'Level 10\'a ulaş' },
+  { id: 'first', name: 'Hello World', desc: ['Squash your first bug', 'İlk bugını öldür'] },
+  { id: 'combo', name: ['Green Pipeline', 'Pipeline Yeşil'], desc: ['Reach a x3.0 combo', 'x3.0 combo yap'] },
+  { id: 'boss', name: 'Incident Commander', desc: ['Take down a Prod Incident', 'Bir Prod Incident\'ı indir'] },
+  { id: 'sprint10', name: 'Velocity', desc: ['10,000 points in Sprint', 'Sprint\'te 10.000 puan'] },
+  { id: 'sprint25', name: ['Story Point Monster', 'Story Point Canavarı'], desc: ['25,000 points in Sprint', 'Sprint\'te 25.000 puan'] },
+  { id: 'wave10', name: 'Uptime 99.9', desc: ['Reach wave 10 in Survival', 'Hayatta Kal\'da 10. dalga'] },
+  { id: 'k100', name: 'Bug Bounty', desc: ['100 bugs in total', 'Toplam 100 bug'] },
+  { id: 'k1000', name: 'Zero Defect', desc: ['1,000 bugs in total', 'Toplam 1.000 bug'] },
+  { id: 'frag', name: 'Code Review', desc: ['Frag a friend in the Arena', 'Arena\'da bir arkadaşını vur'] },
+  { id: 'streak5', name: ['Unstoppable', 'Durdurulamaz'], desc: ['5-kill streak in the Arena', 'Arena\'da 5\'li seri yap'] },
+  { id: 'mvp', name: 'MVP', desc: ['Finish an Arena round on top', 'Bir arena maçını birinci bitir'] },
+  { id: 'lvl10', name: ['Promoted', 'Terfi'], desc: ['Reach level 10', 'Level 10\'a ulaş'] },
 ];
 const needFor = L => Math.round(150 + 90 * (L - 1) + 8 * (L - 1) * (L - 1));
 function levelInfo(total) {
@@ -366,7 +414,6 @@ function levelInfo(total) {
 }
 
 /* ---------------------------- PROFILE ---------------------------- */
-const LS_KEY = 'bugavi.profile.v1', LS_SET = 'bugavi.settings.v1';
 const defaultProfile = () => ({ v: 1, xpTotal: 0, coffee: 0, up: {}, best: { sprint: 0, wave: 0 }, totalKills: 0, runs: 0, pvpKills: 0, ach: [], tint: 0, nick: '' });
 function sanitizeProfile(d) {
   const p = defaultProfile();
@@ -382,14 +429,12 @@ function sanitizeProfile(d) {
 }
 let profile = defaultProfile();
 try { profile = sanitizeProfile(JSON.parse(localStorage.getItem(LS_KEY) || 'null')); } catch (e) { }
-let settings = { sens: 1, fov: 80, vol: 0.6 };
-try { Object.assign(settings, JSON.parse(localStorage.getItem(LS_SET) || '{}')); } catch (e) { }
 const saveLocal = () => { try { localStorage.setItem(LS_KEY, JSON.stringify(profile)); } catch (e) { } };
-const saveSettings = () => { try { localStorage.setItem(LS_SET, JSON.stringify(settings)); } catch (e) { } };
 const lvlNow = () => levelInfo(profile.xpTotal).L;
 const upLv = id => profile.up[id] || 0;
+const cleanNick = v => String(v || '').replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 16);
 
-/* ------------------------ CLAUDE CAPABILITIES ------------------------ */
+/* ------------------------ CAPABILITIES (Claude or own server) ------------------------ */
 const CAP = { db: null, user: null, room: null, uid: null, myName: '' };
 let lbState = 'none', lbWriteOff = false, scoresList = [];
 const names = {};
@@ -398,7 +443,7 @@ function useCap(n) {
   return Promise.resolve(null);
 }
 /* --------- standalone multiplayer: own server (Cloudflare Worker) --------- */
-const NET = { server: null, key: null, err: false };
+const NET = { server: null, key: null, err: false, clockOffset: 0 };
 const hex = n => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, '0')).join('');
 function netIdentity() {
   let pid = null, key = null;
@@ -434,6 +479,7 @@ function wsRoom(name) {
     ws.onmessage = ev => {
       let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
       if (m.t === 'hello') {
+        if (Number.isFinite(m.time)) NET.clockOffset = m.time - Date.now();
         st.me = m.peer; st.retry = 0; st.peers.clear();
         st.peers.set(st.me, mk(st.me, { ...st.pres }));
         for (const x of m.peers || []) if (x && x.peer) st.peers.set(x.peer, mk(x.peer, x.p));
@@ -552,7 +598,6 @@ function pushScore() {
   }
   scoreChain = scoreChain.then(() => CAP.db.doc('scores/' + CAP.uid).set(body)).catch(e => { console.warn('score', e); lbWriteOff = true; renderLBIfOpen(); });
 }
-let nameReq = null;
 function resolveNames(ids) {
   if (!CAP.user || !CAP.user.profiles) return;
   const need = [...new Set(ids.filter(id => id && !(id in names)))];
@@ -564,8 +609,8 @@ function resolveNames(ids) {
     for (const r of ARENA.remotes.values()) refreshRemoteName(r);
   }).catch(() => { });
 }
-const dispName = (id, nick) => (typeof nick === 'string' && nick.trim()) ? nick.trim().slice(0, 16) : (id && names[id]) || 'Oyuncu';
-const myName = () => profile.nick || CAP.myName || 'Sen';
+const dispName = (id, nick) => (typeof nick === 'string' && nick.trim()) ? nick.trim().slice(0, 16) : (id && names[id]) || tx('Player', 'Oyuncu');
+const myName = () => profile.nick || CAP.myName || tx('You', 'Sen');
 
 /* --- lobby presence: who's online --- */
 let lobbyPeers = [];
@@ -615,20 +660,26 @@ const SFX = {
   pistol: () => { noise(0.09, 0.5, 'bandpass', 1900, 0.8); tone('sine', 160, 60, 0.1, 0.5); },
   smg: () => { noise(0.05, 0.35, 'bandpass', 2600, 0.9); tone('square', 220, 90, 0.04, 0.12); },
   shotgun: () => { noise(0.28, 0.7, 'lowpass', 1400, 0.7, 0, 300); tone('sine', 110, 40, 0.2, 0.6); },
+  laser: () => { tone('square', 1400, 600, 0.12, 0.12); tone('sine', 2200, 900, 0.18, 0.12); },
   rail: () => { tone('sawtooth', 1800, 140, 0.4, 0.22); noise(0.25, 0.3, 'highpass', 3000, 0.5); tone('sine', 80, 40, 0.3, 0.5); },
   launcher: () => { noise(0.3, 0.4, 'lowpass', 900, 1, 0, 200); tone('sine', 300, 80, 0.3, 0.3); },
   boom: () => { noise(0.7, 0.9, 'lowpass', 900, 0.6, 0, 80); tone('sine', 90, 30, 0.6, 0.8); },
   hit: () => tone('triangle', 1500, 1100, 0.04, 0.18),
   kill: () => { tone('square', 520, 110, 0.13, 0.14); noise(0.1, 0.2, 'bandpass', 700, 2); },
   hurt: () => { tone('sawtooth', 200, 80, 0.18, 0.3); noise(0.12, 0.25, 'lowpass', 600); },
+  block: () => { tone('triangle', 1800, 2400, 0.06, 0.15); },
   reload: () => { noise(0.04, 0.3, 'highpass', 2500, 1); noise(0.05, 0.3, 'highpass', 1800, 1, 0.18); },
   empty: () => tone('square', 900, 850, 0.03, 0.08),
   dash: () => noise(0.25, 0.35, 'bandpass', 600, 0.7, 0, 3000),
+  grapple: () => { noise(0.15, 0.3, 'highpass', 2000, 1, 0, 600); tone('sine', 400, 1200, 0.15, 0.12); },
+  blink: () => { tone('sine', 1600, 200, 0.25, 0.25); noise(0.2, 0.2, 'bandpass', 3000, 2, 0, 400); },
+  shield: () => { tone('sine', 300, 900, 0.3, 0.2); tone('triangle', 600, 1200, 0.3, 0.1, 0.05); },
   jump: () => tone('sine', 300, 500, 0.08, 0.08),
   pickup: () => { tone('sine', 660, 660, 0.08, 0.2); tone('sine', 990, 990, 0.12, 0.2, 0.07); },
   orb: () => tone('sine', 700, 300, 0.15, 0.06),
   spawn: () => tone('sine', 120, 420, 0.25, 0.05),
   level: () => [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, 0.22, 0.25, i * 0.09)),
+  streak: () => [392, 523, 659, 784, 1047].forEach((f, i) => tone('square', f, f, 0.12, 0.12, i * 0.06)),
   wave: () => { tone('sawtooth', 220, 220, 0.25, 0.12); tone('sawtooth', 330, 330, 0.3, 0.12, 0.2); },
   alarm: () => { for (let i = 0; i < 3; i++) { tone('square', 880, 440, 0.25, 0.12, i * 0.3); } },
   bp: () => tone('sine', 900, 120, 0.6, 0.3),
@@ -643,7 +694,7 @@ let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
 } catch (e) {
-  document.body.innerHTML = '<div style="padding:40px;font-family:sans-serif;color:#fff">Bu tarayıcıda WebGL açılamadı. Donanım hızlandırmayı açıp tekrar dene.</div>';
+  document.body.innerHTML = `<div style="padding:40px;font-family:sans-serif;color:#fff">${tx('WebGL could not start in this browser. Turn on hardware acceleration and try again.', 'Bu tarayıcıda WebGL açılamadı. Donanım hızlandırmayı açıp tekrar dene.')}</div>`;
   throw e;
 }
 renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
@@ -682,7 +733,6 @@ function canvasTex(w, h, draw, repeat) {
   if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(repeat, repeat); }
   return t;
 }
-// floor
 const gridTex = canvasTex(256, 256, (g, w, h) => {
   g.fillStyle = '#0c1222'; g.fillRect(0, 0, w, h);
   g.fillStyle = '#0f172b'; g.fillRect(4, 4, w / 2 - 8, h / 2 - 8); g.fillRect(w / 2 + 4, h / 2 + 4, w / 2 - 8, h / 2 - 8);
@@ -695,7 +745,6 @@ const glowTex = canvasTex(256, 256, (g, w, h) => {
 const floor = new THREE.Mesh(new THREE.PlaneGeometry(A * 2, A * 2),
   new THREE.MeshStandardMaterial({ map: gridTex, emissive: 0x36e2ff, emissiveMap: glowTex, emissiveIntensity: 0.35, roughness: 0.85, metalness: 0.1 }));
 floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; scene.add(floor);
-// walls
 const wallMat = new THREE.MeshStandardMaterial({ color: 0x121a30, roughness: 0.8 });
 const neonMat = new THREE.MeshBasicMaterial({ color: 0x36e2ff });
 for (const [x, z, sx, sz] of [[0, -A - 0.5, A * 2 + 2, 1], [0, A + 0.5, A * 2 + 2, 1], [-A - 0.5, 0, 1, A * 2 + 2], [A + 0.5, 0, 1, A * 2 + 2]]) {
@@ -704,7 +753,6 @@ for (const [x, z, sx, sz] of [[0, -A - 0.5, A * 2 + 2, 1], [0, A + 0.5, A * 2 + 
   n.position.set(x - Math.sign(x) * 0.5, 4.2, z - Math.sign(z) * 0.5); scene.add(n);
   const n2 = n.clone(); n2.position.y = 0.15; scene.add(n2);
 }
-// obstacles
 const rackTex = canvasTex(128, 256, (g, w, h) => {
   g.fillStyle = '#141b2e'; g.fillRect(0, 0, w, h);
   for (let y = 8; y < h - 8; y += 18) {
@@ -737,7 +785,6 @@ for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
 addObs(-22, 0, 2, 2, 1.1, crateMat, 0xffd23f); addObs(22, 0, 2, 2, 1.1, crateMat, 0xffd23f);
 addObs(0, -22, 2, 2, 1.1, crateMat, 0xffd23f); addObs(0, 22, 2, 2, 1.1, crateMat, 0xffd23f);
 addObs(0, 0, 5, 5, 1.2, platMat, 0xff3d81);
-// portals
 const PORTALS = [];
 for (const s of [-1, 1]) for (const k of [-14, 0, 14]) { PORTALS.push(new V3(s * 27.5, 0, k)); PORTALS.push(new V3(k, 0, s * 27.5)); }
 const portalMeshes = PORTALS.map(p => {
@@ -755,24 +802,29 @@ function pushOut(p, r, o) {
   if (m === l) { p.x = o.minX - r; return [-1, 0]; } if (m === rr) { p.x = o.maxX + r; return [1, 0]; }
   if (m === t) { p.z = o.minZ - r; return [0, -1]; } p.z = o.maxZ + r; return [0, 1];
 }
-function rayAABB(o, d, x0, y0, z0, x1, y1, z1) {
-  let tmin = 0, tmax = 1e9;
+// slab test; returns entry distance and the face normal it entered through (null if the origin is inside)
+function rayAABBN(o, d, x0, y0, z0, x1, y1, z1) {
+  let tmin = 0, tmax = 1e9, axis = -1, sign = 0;
   const ax = [[o.x, d.x, x0, x1], [o.y, d.y, y0, y1], [o.z, d.z, z0, z1]];
-  for (const [oo, dd, mn, mx] of ax) {
-    if (Math.abs(dd) < 1e-9) { if (oo < mn || oo > mx) return -1; continue; }
-    let t1 = (mn - oo) / dd, t2 = (mx - oo) / dd; if (t1 > t2) { const s = t1; t1 = t2; t2 = s; }
-    tmin = Math.max(tmin, t1); tmax = Math.min(tmax, t2); if (tmin > tmax) return -1;
+  for (let i = 0; i < 3; i++) {
+    const [oo, dd, mn, mx] = ax[i];
+    if (Math.abs(dd) < 1e-9) { if (oo < mn || oo > mx) return null; continue; }
+    let t1 = (mn - oo) / dd, t2 = (mx - oo) / dd, s = -1; if (t1 > t2) { const q = t1; t1 = t2; t2 = q; s = 1; }
+    if (t1 > tmin) { tmin = t1; axis = i; sign = s; }
+    tmax = Math.min(tmax, t2); if (tmin > tmax) return null;
   }
-  return tmin;
+  if (axis < 0) return { t: 0, n: null };
+  const n = new V3(); n.setComponent(axis, sign); return { t: tmin, n };
 }
-function rayWorld(o, d, maxD = 150) {
-  let best = maxD;
-  for (const ob of OBS) { const t = rayAABB(o, d, ob.minX, 0, ob.minZ, ob.maxX, ob.h, ob.maxZ); if (t >= 0 && t < best) best = t; }
-  if (d.x > 1e-9) best = Math.min(best, (A - o.x) / d.x); else if (d.x < -1e-9) best = Math.min(best, (-A - o.x) / d.x);
-  if (d.z > 1e-9) best = Math.min(best, (A - o.z) / d.z); else if (d.z < -1e-9) best = Math.min(best, (-A - o.z) / d.z);
-  if (d.y < -1e-9) best = Math.min(best, -o.y / d.y);
-  return Math.max(0, best);
+function rayWorldN(o, d, maxD = 150) {
+  let best = maxD, n = null;
+  for (const ob of OBS) { const r = rayAABBN(o, d, ob.minX, 0, ob.minZ, ob.maxX, ob.h, ob.maxZ); if (r && r.t < best) { best = r.t; n = r.n; } }
+  if (d.x > 1e-9) { const t = (A - o.x) / d.x; if (t < best) { best = t; n = new V3(-1, 0, 0); } } else if (d.x < -1e-9) { const t = (-A - o.x) / d.x; if (t < best) { best = t; n = new V3(1, 0, 0); } }
+  if (d.z > 1e-9) { const t = (A - o.z) / d.z; if (t < best) { best = t; n = new V3(0, 0, -1); } } else if (d.z < -1e-9) { const t = (-A - o.z) / d.z; if (t < best) { best = t; n = new V3(0, 0, 1); } }
+  if (d.y < -1e-9) { const t = -o.y / d.y; if (t < best) { best = t; n = new V3(0, 1, 0); } }
+  return { t: Math.max(0, best), n };
 }
+const rayWorld = (o, d, maxD = 150) => rayWorldN(o, d, maxD).t;
 function raySphere(o, d, c, r) {
   const ox = o.x - c.x, oy = o.y - c.y, oz = o.z - c.z;
   const b = ox * d.x + oy * d.y + oz * d.z, cc = ox * ox + oy * oy + oz * oz - r * r, disc = b * b - cc;
@@ -782,7 +834,7 @@ function insideObs(p, pad = 0) { for (const o of OBS) if (p.x > o.minX - pad && 
 const losClear = (a, b) => { const d = new V3().subVectors(b, a); const L = d.length(); d.divideScalar(L); return rayWorld(a, d, L + 1) >= L - 0.2; };
 
 /* ------------------------------- FX ------------------------------- */
-const PN = 700;
+const PN = 800;
 const pGeo = new THREE.BufferGeometry();
 const pPos = new Float32Array(PN * 3), pCol = new Float32Array(PN * 3);
 pGeo.setAttribute('position', new THREE.BufferAttribute(pPos, 3)); pGeo.setAttribute('color', new THREE.BufferAttribute(pCol, 3));
@@ -841,13 +893,15 @@ function updateFx(dt) {
 const P = { pos: new V3(0, 0, 8), vel: new V3(), dashV: new V3(), yaw: 0, pitch: 0, onGround: true, jumps: 0, hp: 100, maxHp: 100, r: 0.4, eye: 1.6, bob: 0 };
 const keys = {};
 let firing = false, shake = 0;
-const cds = { dash: 0, grenade: 0, breakpoint: 0 };
-let breakT = 0, overT = 0, hurtFlash = 0;
+const cds = { dash: 0, grenade: 0, breakpoint: 0, grapple: 0, shield: 0, blink: 0 };
+let breakT = 0, overT = 0, hurtFlash = 0, shieldT = 0;
+const GR = { active: false, point: new V3(), t: 0 };
 const has = id => { const a = ABILITIES.find(x => x.id === id) || WEAPONS.find(x => x.id === id); return a && lvlNow() >= a.lvl; };
 const pvp = () => game.mode === 'arena';
 const dmgMult = () => pvp() ? 1 : 1 + 0.08 * upLv('dmg');
 const cdMult = () => pvp() ? 1 : 1 - 0.08 * upLv('cd');
 const tintColor = () => { const t = TINTS[profile.tint] || TINTS[0]; return t.c < 0 ? new THREE.Color().setHSL((performance.now() / 3000) % 1, 1, 0.6).getHex() : t.c; };
+const canAct = () => game.state === 'playing' && !(pvp() && (ARENA.dead || ARENA.inter));
 
 function groundAt(x, z, fromY) {
   let g = 0;
@@ -859,34 +913,74 @@ function updatePlayer(dt) {
   const wish = new V3();
   if (keys.KeyW) wish.add(fwd); if (keys.KeyS) wish.sub(fwd); if (keys.KeyD) wish.add(right); if (keys.KeyA) wish.sub(right);
   if (wish.lengthSq() > 0) wish.normalize();
-  const spd = 7.2 * (pvp() ? 1 : 1 + 0.04 * upLv('spd'));
-  const acc = P.onGround ? 14 : 4, k = Math.min(1, acc * dt);
-  P.vel.x += (wish.x * spd - P.vel.x) * k; P.vel.z += (wish.z * spd - P.vel.z) * k;
-  P.dashV.multiplyScalar(Math.exp(-7 * dt));
   if (keys.ArrowLeft) P.yaw += 2.4 * dt; if (keys.ArrowRight) P.yaw -= 2.4 * dt;
   if (keys.ArrowUp) P.pitch = clamp(P.pitch + 1.6 * dt, -1.5, 1.5); if (keys.ArrowDown) P.pitch = clamp(P.pitch - 1.6 * dt, -1.5, 1.5);
   const prevY = P.pos.y;
+  if (GR.active) {
+    GR.t += dt;
+    const to = new V3(GR.point.x - P.pos.x, GR.point.y - (P.pos.y + 1.0), GR.point.z - P.pos.z); const dist = to.length();
+    if (dist < 1.3 || GR.t > 1.1) {
+      GR.active = false; P.vel.multiplyScalar(0.45);
+      if (GR.point.y > P.pos.y + 0.6) P.vel.y = Math.max(P.vel.y, 7.5); // mantle onto ledges
+    } else {
+      P.vel.copy(to.multiplyScalar(26 / dist));
+      beam(muzzleWorld(), GR.point, 0xe8f6ff, 0.012, 0.03);
+    }
+  } else {
+    const spd = 7.2 * (pvp() ? 1 : 1 + 0.04 * upLv('spd'));
+    const acc = P.onGround ? 14 : 4, k = Math.min(1, acc * dt);
+    P.vel.x += (wish.x * spd - P.vel.x) * k; P.vel.z += (wish.z * spd - P.vel.z) * k;
+    P.vel.y -= 24 * dt;
+  }
+  P.dashV.multiplyScalar(Math.exp(-7 * dt));
   P.pos.x += (P.vel.x + P.dashV.x) * dt; P.pos.z += (P.vel.z + P.dashV.z) * dt;
   for (const o of OBS) if (P.pos.y < o.h - 0.06) pushOut(P.pos, P.r, o);
   P.pos.x = clamp(P.pos.x, -A + P.r, A - P.r); P.pos.z = clamp(P.pos.z, -A + P.r, A - P.r);
-  P.vel.y -= 24 * dt; P.pos.y += P.vel.y * dt;
+  P.pos.y = Math.min(P.pos.y + P.vel.y * dt, 9);
   const g = groundAt(P.pos.x, P.pos.z, prevY);
-  if (P.pos.y <= g) { if (!P.onGround && P.vel.y < -9) shake = Math.max(shake, 0.08); P.pos.y = g; P.vel.y = 0; P.onGround = true; P.jumps = 0; }
+  if (P.pos.y <= g) { if (!P.onGround && P.vel.y < -9) shake = Math.max(shake, 0.08); P.pos.y = g; P.vel.y = Math.max(0, P.vel.y); if (!GR.active) P.vel.y = 0; P.onGround = true; P.jumps = 0; }
   else P.onGround = false;
   const moving = P.onGround && wish.lengthSq() > 0;
   P.bob += dt * (moving ? 11 : 0);
 }
 function jump() {
+  if (GR.active) { GR.active = false; P.vel.y = Math.max(P.vel.y, 6); return; }
   if (P.onGround) { P.vel.y = 8.4; P.onGround = false; P.jumps = 1; sfx('jump'); }
   else if (has('djump') && P.jumps < 2) { P.vel.y = 8.0; P.jumps = 2; burst(P.pos.clone().setY(P.pos.y + 0.1), 0x36e2ff, 10, 3, 0.4); sfx('jump'); }
 }
 function dash() {
-  if (!has('dash') || cds.dash > 0) return;
+  if (!has('dash') || cds.dash > 0 || !canAct()) return;
   const d = new V3(); const fwd = new V3(-Math.sin(P.yaw), 0, -Math.cos(P.yaw)), right = new V3(Math.cos(P.yaw), 0, -Math.sin(P.yaw));
   if (keys.KeyW) d.add(fwd); if (keys.KeyS) d.sub(fwd); if (keys.KeyD) d.add(right); if (keys.KeyA) d.sub(right);
   if (d.lengthSq() === 0) d.copy(fwd); d.normalize();
   P.dashV.copy(d.multiplyScalar(26)); cds.dash = 2.5 * cdMult(); sfx('dash');
   burst(P.pos.clone().setY(P.pos.y + 0.8), 0x36e2ff, 14, 4, 0.35);
+}
+function useGrapple() {
+  if (!has('grapple') || cds.grapple > 0 || !canAct()) return;
+  const o = camera.getWorldPosition(new V3()), d = camDir();
+  const hit = rayWorldN(o, d, 34);
+  if (hit.t >= 33.9 || hit.t < 1.6 || (hit.n && hit.n.y > 0.5 && o.y + d.y * hit.t < 0.1)) { sfx('empty'); return; }
+  GR.active = true; GR.t = 0; GR.point.copy(o).addScaledVector(d, hit.t - 0.25);
+  if (hit.n) GR.point.addScaledVector(hit.n, 0.3);
+  cds.grapple = 3.5 * cdMult(); P.dashV.set(0, 0, 0); sfx('grapple');
+  burst(GR.point, 0xe8f6ff, 10, 3, 0.3);
+}
+function useBlink() {
+  if (!has('blink') || cds.blink > 0 || !canAct()) return;
+  const d = camDir(); d.y = 0; if (d.lengthSq() < 1e-4) return; d.normalize();
+  const o = new V3(P.pos.x, P.pos.y + 0.9, P.pos.z);
+  const dist = Math.min(12, rayWorld(o, d, 12.6) - 0.7);
+  if (dist < 1) { sfx('empty'); return; }
+  burst(o, tintColor(), 26, 5, 0.5);
+  P.pos.addScaledVector(d, dist);
+  for (const ob of OBS) if (P.pos.y < ob.h - 0.06) pushOut(P.pos, P.r, ob);
+  GR.active = false; cds.blink = 7 * cdMult(); sfx('blink'); shake = Math.max(shake, 0.06);
+  burst(new V3(P.pos.x, P.pos.y + 0.9, P.pos.z), tintColor(), 26, 5, 0.5);
+}
+function useShield() {
+  if (!has('shield') || cds.shield > 0 || !canAct()) return;
+  shieldT = 2.5; cds.shield = 14 * cdMult(); sfx('shield');
 }
 
 /* ------------------------------ WEAPONS ------------------------------ */
@@ -894,53 +988,72 @@ const ws = {}; let curW = 'pistol', nextFire = 0;
 const W = id => WEAPONS.find(w => w.id === id);
 const magOf = w => pvp() ? w.mag : Math.round(w.mag * (1 + 0.1 * upLv('rel')));
 function resetWeapons() { for (const w of WEAPONS) ws[w.id] = { mag: magOf(w), rel: 0 }; if (!has(curW)) curW = 'pistol'; buildViewmodel(); }
-function switchW(id) { if (!has(id) || id === curW) return; ws[curW].rel = 0; curW = id; nextFire = Math.max(nextFire, game.t + 0.25); buildViewmodel(); vm.swap = 1; updateHUDWeapons(); }
+function switchW(id) { if (!W(id) || !has(id) || id === curW) return; ws[curW].rel = 0; curW = id; nextFire = Math.max(nextFire, game.t + 0.25); buildViewmodel(); vm.swap = 1; updateHUDWeapons(); }
 function cycleW(dir) { const av = WEAPONS.filter(w => has(w.id)); let i = av.findIndex(w => w.id === curW); i = (i + dir + av.length) % av.length; switchW(av[i].id); }
 function reload() { const w = W(curW), s = ws[curW]; if (s.rel > 0 || s.mag >= magOf(w)) return; s.rel = w.reload * (pvp() ? 1 : 1 - 0.07 * upLv('rel')); sfx('reload'); }
 const tmpV = new V3();
 function muzzleWorld() { return camera.localToWorld(tmpV.set(0.26, -0.2, -0.9).clone()); }
 function camDir() { return new V3(0, 0, -1).applyQuaternion(camera.quaternion).normalize(); }
+function remoteHitT(r, o, d) {
+  const p = r.mesh.position; let best = -1, head = false;
+  const th = raySphere(o, d, tmpV.set(p.x, p.y + 1.62, p.z), 0.3); if (th > 0) { best = th; head = true; }
+  for (const [hy, rr] of [[1.05, 0.5], [0.45, 0.4]]) { const t = raySphere(o, d, tmpV.set(p.x, p.y + hy, p.z), rr); if (t > 0 && (best < 0 || t < best)) { best = t; head = false; } }
+  return { t: best, head };
+}
+const targetable = r => r.alive && !r.prot;
 
 function fire() {
   const w = W(curW), s = ws[curW];
-  if (game.t < nextFire || s.rel > 0 || (pvp() && ARENA.dead)) return;
+  if (game.t < nextFire || s.rel > 0 || !canAct()) return;
   if (s.mag <= 0) { sfx('empty'); reload(); nextFire = game.t + 0.25; return; }
   s.mag--; nextFire = game.t + 1 / (w.rate * (overT > 0 ? 1.6 : 1));
+  if (pvp()) ARENA.protT = 0; // shooting ends spawn protection
   vm.kick = Math.min(1, vm.kick + (w.id === 'rail' || w.id === 'shotgun' || w.id === 'launcher' ? 1 : 0.45));
   P.pitch = clamp(P.pitch + (w.id === 'shotgun' ? 0.03 : w.id === 'rail' ? 0.035 : 0.008), -1.5, 1.5);
   sfx(w.id); vm.flashT = 0.05;
   const o = camera.getWorldPosition(new V3()), dir = camDir(), mz = muzzleWorld();
-  flash.position.copy(mz); flash.color.set(0xffcc66); flash.intensity = 3; flash.distance = 8;
+  flash.position.copy(mz); flash.color.set(w.id === 'laser' ? tintColor() : 0xffcc66); flash.intensity = 3; flash.distance = 8;
   if (w.projectile) { spawnRocket(mz, dir); if (s.mag === 0) setTimeout(reload, 200); return; }
   const agg = new Map(), aggP = new Map();
   let lastEnd = null;
-  const right = new V3(1, 0, 0).applyQuaternion(camera.quaternion), up = new V3(0, 1, 0).applyQuaternion(camera.quaternion);
-  for (let i = 0; i < w.pellets; i++) {
-    const d = dir.clone();
-    if (w.spread) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * w.spread * (P.onGround ? 1 : 1.6); d.addScaledVector(right, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize(); }
-    const wallT = rayWorld(o, d);
-    const hits = [];
-    for (const e of enemies) { if (e.dead) continue; const t = raySphere(o, d, e.center, e.hitR); if (t > 0 && t < wallT) hits.push({ e, t }); }
-    if (pvp()) for (const r of ARENA.remotes.values()) {
-      if (!r.alive) continue; const p = r.mesh.position;
-      let best = -1, head = false;
-      const th = raySphere(o, d, tmpV.set(p.x, p.y + 1.62, p.z), 0.3); if (th > 0) { best = th; head = true; }
-      for (const [hy, rr] of [[1.05, 0.5], [0.45, 0.4]]) { const t = raySphere(o, d, tmpV.set(p.x, p.y + hy, p.z), rr); if (t > 0 && (best < 0 || t < best)) { best = t; head = false; } }
-      if (best > 0 && best < wallT) hits.push({ r, t: best, head });
+  if (w.bounces) {
+    // ricochet laser: reflects off walls, pierces bugs, each target hit at most once per shot
+    let ro = o.clone(), rd = dir.clone(), from = mz.clone();
+    const hitSet = new Set();
+    for (let b = 0; b <= w.bounces; b++) {
+      const { t: wallT, n } = rayWorldN(ro, rd, 80);
+      for (const e of enemies) { if (e.dead || e.downed || hitSet.has(e)) continue; const t = raySphere(ro, rd, e.center, e.hitR); if (t > 0 && t < wallT) { hitSet.add(e); agg.set(e, (agg.get(e) || 0) + w.dmg * dmgMult()); } }
+      if (pvp()) for (const r of ARENA.remotes.values()) { if (!targetable(r) || hitSet.has(r)) continue; const h = remoteHitT(r, ro, rd); if (h.t > 0 && h.t < wallT) { hitSet.add(r); aggP.set(r, (aggP.get(r) || 0) + w.dmg * (h.head ? 1.6 : 1)); } }
+      const end = ro.clone().addScaledVector(rd, wallT);
+      if (!lastEnd) lastEnd = end.clone();
+      beam(from, end, tintColor(), 0.04, 0.3); beam(from, end, 0xffffff, 0.014, 0.2);
+      burst(end, tintColor(), 6, 3, 0.25);
+      if (!n) break;
+      rd.reflect(n).normalize(); ro = end.addScaledVector(n, 0.03); from = ro.clone();
     }
-    hits.sort((a, b) => a.t - b.t);
-    let endT = wallT;
-    const list = w.pierce ? hits : hits.slice(0, 1);
-    for (const h of list) {
-      const dm = w.dmg * dmgMult();
-      if (h.e) agg.set(h.e, (agg.get(h.e) || 0) + dm);
-      else aggP.set(h.r, (aggP.get(h.r) || 0) + dm * (h.head ? 1.6 : 1));
-      if (!w.pierce) endT = h.t;
+  } else {
+    const right = new V3(1, 0, 0).applyQuaternion(camera.quaternion), up = new V3(0, 1, 0).applyQuaternion(camera.quaternion);
+    for (let i = 0; i < w.pellets; i++) {
+      const d = dir.clone();
+      if (w.spread) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * w.spread * (P.onGround ? 1 : 1.6); d.addScaledVector(right, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize(); }
+      const wallT = rayWorld(o, d);
+      const hits = [];
+      for (const e of enemies) { if (e.dead || e.downed) continue; const t = raySphere(o, d, e.center, e.hitR); if (t > 0 && t < wallT) hits.push({ e, t }); }
+      if (pvp()) for (const r of ARENA.remotes.values()) { if (!targetable(r)) continue; const h = remoteHitT(r, o, d); if (h.t > 0 && h.t < wallT) hits.push({ r, t: h.t, head: h.head }); }
+      hits.sort((a, b) => a.t - b.t);
+      let endT = wallT;
+      const list = w.pierce ? hits : hits.slice(0, 1);
+      for (const h of list) {
+        const dm = w.dmg * dmgMult();
+        if (h.e) agg.set(h.e, (agg.get(h.e) || 0) + dm);
+        else aggP.set(h.r, (aggP.get(h.r) || 0) + w.dmg * (h.head ? 1.6 : 1));
+        if (!w.pierce) endT = h.t;
+      }
+      const end = o.clone().addScaledVector(d, endT); lastEnd = end;
+      if (w.id === 'rail') { beam(mz, end, tintColor(), 0.06, 0.35); beam(mz, end, 0xffffff, 0.02, 0.25); }
+      else beam(mz, end, w.id === 'shotgun' ? 0xffd27a : 0xfff2b0, 0.012, 0.06);
+      if (!list.length || w.pierce) burst(end, 0x9fdcff, 5, 4, 0.25);
     }
-    const end = o.clone().addScaledVector(d, endT); lastEnd = end;
-    if (w.id === 'rail') { beam(mz, end, tintColor(), 0.06, 0.35); beam(mz, end, 0xffffff, 0.02, 0.25); }
-    else beam(mz, end, w.id === 'shotgun' ? 0xffd27a : 0xfff2b0, 0.012, 0.06);
-    if (!list.length || w.pierce) burst(end, 0x9fdcff, 5, 4, 0.25);
   }
   let hitAny = false, killAny = false;
   for (const [e, dm] of agg) { hitAny = true; if (damageEnemy(e, dm, dir)) killAny = true; }
@@ -963,8 +1076,8 @@ function spawnRocket(pos, dir) {
   projs.push({ kind: 'rocket', m, vel: dir.clone().multiplyScalar(34), life: 3 });
 }
 function throwGrenade() {
-  if (!has('grenade') || cds.grenade > 0 || (pvp() && ARENA.dead)) return;
-  cds.grenade = 7 * cdMult();
+  if (!has('grenade') || cds.grenade > 0 || !canAct()) return;
+  cds.grenade = 7 * cdMult(); if (pvp()) ARENA.protT = 0;
   const d = camDir(); const m = new THREE.Mesh(nadeGeo, new THREE.MeshStandardMaterial({ color: 0x3ddc97, emissive: 0x3ddc97, emissiveIntensity: 0.6 }));
   m.position.copy(camera.getWorldPosition(new V3())).addScaledVector(d, 0.6); scene.add(m);
   projs.push({ kind: 'nade', m, vel: d.multiplyScalar(17).add(new V3(0, 4.5, 0)).add(P.vel.clone().multiplyScalar(0.5)), life: 1.4 });
@@ -978,12 +1091,12 @@ function enemyOrb(from, to, speed = 13, dmg = 9, color = 0x3ddc97) {
 function explode(pos, dmg, radius, fromPlayer) {
   explosionFx(pos, radius);
   let killAny = false, hitAny = false;
-  for (const e of enemies) {
-    if (e.dead) continue; const d = e.center.distanceTo(pos) - e.r;
+  for (const e of enemies.slice()) {
+    if (e.dead || e.downed) continue; const d = e.center.distanceTo(pos) - e.r;
     if (d < radius) { hitAny = true; if (damageEnemy(e, dmg * dmgMult() * (1 - 0.6 * clamp(d / radius, 0, 1)), null)) killAny = true; }
   }
   if (fromPlayer && pvp()) for (const r of ARENA.remotes.values()) {
-    if (!r.alive) continue; const d = r.mesh.position.clone().setY(r.mesh.position.y + 1).distanceTo(pos);
+    if (!targetable(r)) continue; const d = r.mesh.position.clone().setY(r.mesh.position.y + 1).distanceTo(pos);
     if (d < radius) { hitAny = true; hitRemote(r, dmg * 0.8 * (1 - 0.6 * d / radius)); }
   }
   if (hitAny) hitMarker(killAny);
@@ -1011,8 +1124,8 @@ function updateProjs(dt) {
       if (p.kind === 'rocket') {
         burst(pos, 0xffa040, 2, 1.5, 0.3);
         let hit = hitWall;
-        if (!hit) for (const e of enemies) if (!e.dead && e.center.distanceTo(pos) < e.hitR + 0.15) { hit = true; break; }
-        if (!hit && pvp()) for (const r of ARENA.remotes.values()) if (r.alive && r.mesh.position.clone().setY(r.mesh.position.y + 1).distanceTo(pos) < 0.7) { hit = true; break; }
+        if (!hit) for (const e of enemies) if (!e.dead && !e.downed && e.center.distanceTo(pos) < e.hitR + 0.15) { hit = true; break; }
+        if (!hit && pvp()) for (const r of ARENA.remotes.values()) if (targetable(r) && r.mesh.position.clone().setY(r.mesh.position.y + 1).distanceTo(pos) < 0.7) { hit = true; break; }
         if (hit || p.life <= 0) { explode(prev, W('launcher').dmg, W('launcher').splash, true); dead = true; }
       } else if (p.kind === 'orb') {
         if (!pvp() && pos.distanceTo(tmpV.set(P.pos.x, P.pos.y + 1.0, P.pos.z)) < 0.75) { damagePlayer(p.dmg, prev); dead = true; burst(pos, 0x3ddc97, 10, 4, 0.4); }
@@ -1038,6 +1151,9 @@ function buildViewmodel() {
     case 'pistol': box(0.07, 0.1, 0.3, vmDark, 0, 0, -0.1); box(0.06, 0.15, 0.07, vmMid, 0, -0.11, 0.0).rotation.x = 0.25; box(0.072, 0.015, 0.25, acc, 0, 0.05, -0.1); tip = -0.27; break;
     case 'smg': box(0.08, 0.11, 0.46, vmDark, 0, 0, -0.15); box(0.05, 0.18, 0.07, vmMid, 0, -0.14, -0.2); box(0.06, 0.14, 0.07, vmMid, 0, -0.1, 0.03).rotation.x = 0.3; cyl(0.022, 0.16, vmMid, 0, 0.015, -0.44); box(0.082, 0.015, 0.38, acc, 0, 0.06, -0.15); tip = -0.53; break;
     case 'shotgun': box(0.1, 0.12, 0.42, vmDark, 0, -0.01, -0.05); cyl(0.03, 0.6, vmMid, -0.022, 0.03, -0.42); cyl(0.03, 0.6, vmMid, 0.022, 0.03, -0.42); box(0.11, 0.06, 0.22, acc, 0, -0.06, -0.3); tip = -0.73; break;
+    case 'laser': box(0.09, 0.1, 0.38, vmDark, 0, 0, -0.08); box(0.06, 0.14, 0.07, vmMid, 0, -0.1, 0.04).rotation.x = 0.3;
+      for (let i = 0; i < 3; i++) { const p = new THREE.Mesh(new THREE.OctahedronGeometry(0.035 - i * 0.006, 0), acc); p.position.set(0, 0.02, -0.32 - i * 0.07); g.add(p); }
+      box(0.092, 0.012, 0.3, acc, 0, 0.055, -0.08); tip = -0.5; break;
     case 'rail': box(0.09, 0.12, 0.55, vmDark, 0, 0, -0.2); cyl(0.03, 0.5, vmMid, 0, 0.02, -0.55);
       for (let i = 0; i < 4; i++) { const t = new THREE.Mesh(new THREE.TorusGeometry(0.055, 0.012, 6, 16), acc); t.position.set(0, 0.02, -0.38 - i * 0.1); g.add(t); }
       tip = -0.8; break;
@@ -1066,30 +1182,39 @@ const barBgMat = new THREE.MeshBasicMaterial({ color: 0x000000, transparent: tru
 const barGeo = new THREE.PlaneGeometry(1, 0.09); const barFgGeo = new THREE.PlaneGeometry(1, 0.09); barFgGeo.translate(0.5, 0, 0);
 function makeBug(type) {
   const T = ETYPES[type], r = T.r, g = new THREE.Group();
-  const mat = new THREE.MeshStandardMaterial({ color: T.color, roughness: 0.35, metalness: 0.25, emissive: T.color, emissiveIntensity: 0.22 });
+  const fadeable = type === 'ghost' || type === 'glitch';
+  const mat = new THREE.MeshStandardMaterial({ color: T.color, roughness: 0.35, metalness: 0.25, emissive: T.color, emissiveIntensity: 0.22, transparent: fadeable });
+  const em = fadeable ? Object.assign(eyeMat.clone(), { transparent: true }) : eyeMat;
+  const pm = fadeable ? Object.assign(pupilMat.clone(), { transparent: true }) : pupilMat;
+  const lm = fadeable ? Object.assign(legMat.clone(), { transparent: true }) : legMat;
   const body = new THREE.Mesh(sphGeo, mat); body.scale.set(r, r * 0.7, r * 1.3); body.position.y = r * 0.8; body.castShadow = true; g.add(body);
   const head = new THREE.Mesh(sphGeo, mat); head.scale.setScalar(r * 0.55); head.position.set(0, r * 0.95, -r * 1.25); g.add(head);
   for (const s of [-1, 1]) {
-    const e = new THREE.Mesh(eyeGeo, eyeMat); e.scale.setScalar(r * 0.17); e.position.set(s * r * 0.22, r * 1.12, -r * 1.68); g.add(e);
-    const pp = new THREE.Mesh(eyeGeo, pupilMat); pp.scale.setScalar(r * 0.08); pp.position.set(s * r * 0.22, r * 1.13, -r * 1.83); g.add(pp);
-    const ant = new THREE.Mesh(legGeo, legMat); ant.scale.set(0.6, 0.6, r * 0.8); ant.position.set(s * r * 0.2, r * 1.4, -r * 1.5); ant.rotation.set(0.9, s * 0.4, 0); g.add(ant);
+    const e = new THREE.Mesh(eyeGeo, em); e.scale.setScalar(r * 0.17); e.position.set(s * r * 0.22, r * 1.12, -r * 1.68); g.add(e);
+    const pp = new THREE.Mesh(eyeGeo, pm); pp.scale.setScalar(r * 0.08); pp.position.set(s * r * 0.22, r * 1.13, -r * 1.83); g.add(pp);
+    const ant = new THREE.Mesh(legGeo, lm); ant.scale.set(0.6, 0.6, r * 0.8); ant.position.set(s * r * 0.2, r * 1.4, -r * 1.5); ant.rotation.set(0.9, s * 0.4, 0); g.add(ant);
   }
   const legs = [];
   for (let i = 0; i < 6; i++) {
     const s = i < 3 ? -1 : 1, k = i % 3;
     const pivot = new THREE.Group(); pivot.position.set(s * r * 0.6, r * 0.6, (k - 1) * r * 0.7);
-    const leg = new THREE.Mesh(legGeo, legMat); leg.scale.set(r * 1.2, r * 1.2, r * 1.1); leg.rotation.y = Math.PI / 2; leg.position.x = s * r * 0.5; leg.rotation.z = s * -0.6; leg.position.y = -r * 0.25;
+    const leg = new THREE.Mesh(legGeo, lm); leg.scale.set(r * 1.2, r * 1.2, r * 1.1); leg.rotation.y = Math.PI / 2; leg.position.x = s * r * 0.5; leg.rotation.z = s * -0.6; leg.position.y = -r * 0.25;
     pivot.add(leg); g.add(pivot); legs.push(pivot);
   }
   if (type === 'boss') {
     for (let i = 0; i < 8; i++) { const sp = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.8, 6), mat); const a = i / 8 * Math.PI * 2; sp.position.set(Math.cos(a) * r * 0.85, r * 1.2, Math.sin(a) * r * 0.9); sp.rotation.set(Math.sin(a) * 0.6, 0, -Math.cos(a) * 0.6); g.add(sp); }
   }
   if (type === 'flaky') { const ring = new THREE.Mesh(new THREE.TorusGeometry(r * 0.9, 0.03, 6, 24), new THREE.MeshBasicMaterial({ color: 0x3ddc97 })); ring.rotation.x = Math.PI / 2; ring.position.y = r * 1.9; g.add(ring); g.userData.ring = ring; }
+  if (type === 'twin') { const lock = new THREE.Mesh(new THREE.TorusGeometry(r * 0.35, 0.05, 6, 16), new THREE.MeshBasicMaterial({ color: 0xffd23f })); lock.position.y = r * 1.75; g.add(lock); g.userData.lock = lock; }
   const bar = new THREE.Group(); const bg = new THREE.Mesh(barGeo, barBgMat); const fg = new THREE.Mesh(barFgGeo, new THREE.MeshBasicMaterial({ color: 0x3ddc97, depthTest: false }));
   fg.position.x = -0.5; fg.position.z = 0.001; bar.add(bg); bar.add(fg); bg.renderOrder = fg.renderOrder = 10; bar.position.y = r * 2.1 + 0.2; bar.visible = false; g.add(bar);
-  return { g, mat, legs, bar, fg };
+  return { g, mat, legs, bar, fg, body, fade: fadeable ? [mat, em, pm, lm] : null };
 }
-function spawnEnemy(type, at, hpScale = 1) {
+function introEnemy(type) {
+  const T = ETYPES[type]; if (!T.hint || game.seen.has(type)) return;
+  game.seen.add(type); toast(`<b>${esc(T.name)}</b> · ${esc(loc(T.hint))}`);
+}
+function spawnEnemy(type, at, hpScale = 1, opts = {}) {
   const T = ETYPES[type];
   let pos = at;
   if (!pos) {
@@ -1099,32 +1224,54 @@ function spawnEnemy(type, at, hpScale = 1) {
     const pm = portalMeshes[PORTALS.indexOf(p)]; if (pm) pm.userData.pulse = 1;
     if (pos.distanceTo(P.pos) < 25) sfx('spawn');
   }
+  if (type === 'twin' && !opts.child) {
+    const side = new V3(-pos.z, 0, pos.x).normalize().multiplyScalar(1.3);
+    const a = spawnEnemy('twin', pos.clone().add(side), hpScale, { child: true });
+    const b = spawnEnemy('twin', pos.clone().sub(side), hpScale, { child: true });
+    a.partner = b; b.partner = a;
+    a.tether = new THREE.Mesh(beamGeo, new THREE.MeshBasicMaterial({ color: 0xff8c42, transparent: true, opacity: 0.7, blending: THREE.AdditiveBlending, depthWrite: false }));
+    scene.add(a.tether);
+    introEnemy('twin');
+    return a;
+  }
   const b = makeBug(type); b.g.position.copy(pos); b.g.position.y = 0; scene.add(b.g);
   const e = {
     type, T, ...b, pos: b.g.position, vel: new V3(), hp: T.hp * hpScale, maxHp: T.hp * hpScale, r: T.r, baseR: T.r, dead: false,
     center: new V3(), hitR: T.r * 1.15, atk: 0, shoot: rand(1.5, 3), blink: rand(4, 7), summon: 6, burst: 3, age: 0, seed: Math.random() * 100,
-    strafe: Math.random() < 0.5 ? -1 : 1, avoid: new V3(), avoidT: 0, flashT: 0, scale: 1,
+    strafe: Math.random() < 0.5 ? -1 : 1, avoid: new V3(), avoidT: 0, flashT: 0, scale: 1, alpha: 1, downed: false, downT: 0, partner: null, tether: null,
   };
   e.center.set(pos.x, e.r * 0.8, pos.z);
   burst(pos.clone().setY(0.5), T.color, 14, 4, 0.5);
   enemies.push(e);
-  if (type === 'boss') { $('#bossbar').classList.remove('hidden'); game.boss = e; sfx('alarm'); banner('PROD INCIDENT!', 'Herkes war room\'a'); }
+  if (type === 'ghost' || type === 'glitch') introEnemy(type);
+  if (type === 'boss') { $('#bossbar').classList.remove('hidden'); game.boss = e; sfx('alarm'); banner('PROD INCIDENT!', tx('All hands on deck', 'Herkes war room\'a')); }
   return e;
 }
 function damageEnemy(e, dmg, dir) {
-  if (e.dead) return false;
-  e.hp -= dmg; e.flashT = 0.08; e.bar.visible = e.type !== 'boss';
+  if (e.dead || e.downed) return false;
+  e.hp -= dmg; e.flashT = 0.08; e.bar.visible = e.type !== 'boss' && e.alpha > 0.5;
   if (dir) { e.pos.addScaledVector(new V3(dir.x, 0, dir.z), e.type === 'boss' ? 0.02 : 0.12); }
   burst(e.center, e.T.color, 4, 3, 0.3);
-  if (e.hp <= 0) { killEnemy(e); return true; }
-  return false;
+  if (e.hp > 0) return false;
+  if (e.type === 'twin' && e.partner && !e.partner.dead && !e.partner.downed) {
+    e.hp = 0; e.downed = true; e.downT = 3; e.bar.visible = false;
+    popup(tx('Now the other twin!', 'Şimdi diğer ikiz!'));
+    return true;
+  }
+  const partner = e.type === 'twin' && e.partner && e.partner.downed && !e.partner.dead ? e.partner : null;
+  killEnemy(e);
+  if (partner) killEnemy(partner);
+  return true;
 }
+function removeTether(e) { if (e && e.tether) { scene.remove(e.tether); e.tether.material.dispose(); e.tether = null; } }
 function killEnemy(e) {
-  e.dead = true; scene.remove(e.g); e.mat.dispose();
+  e.dead = true; e.downed = false; scene.remove(e.g); e.mat.dispose();
+  if (e.fade) e.fade.slice(1).forEach(m => m.dispose());
+  removeTether(e); removeTether(e.partner);
   burst(e.center, e.T.color, e.type === 'boss' ? 120 : 26, e.type === 'boss' ? 14 : 7, 0.9);
   burst(e.center, 0xffffff, 8, 5, 0.4);
   if (e.type === 'merge') { for (const s of [-1, 1]) spawnEnemy('mini', e.pos.clone().add(new V3(s * 0.6, 0, s * 0.3)), game.hpScale); }
-  if (e.type === 'boss') { game.boss = null; $('#bossbar').classList.add('hidden'); unlockAch('boss'); explosionFx(e.center.clone(), 6, 0xff2a2a); banner('INCIDENT KAPANDI', 'Postmortem yazmayı unutma'); }
+  if (e.type === 'boss') { game.boss = null; $('#bossbar').classList.add('hidden'); unlockAch('boss'); explosionFx(e.center.clone(), 6, 0xff2a2a); banner(tx('INCIDENT RESOLVED', 'INCIDENT KAPANDI'), tx('Don\'t forget the postmortem', 'Postmortem yazmayı unutma')); }
   game.combo++; game.comboT = 3;
   const mult = 1 + Math.min(game.combo, 20) * 0.1;
   const pts = Math.round(e.T.pts * mult * (game.mode === 'survival' ? 1 + (game.wave - 1) * 0.05 : 1));
@@ -1136,12 +1283,37 @@ function killEnemy(e) {
   if (e.type === 'boss') { spawnPickup('hp', e.pos.clone().add(new V3(1, 0, 0))); spawnPickup('hp', e.pos.clone().add(new V3(-1, 0, 0))); spawnPickup('over', e.pos.clone()); }
   else if (dropR < 0.07) spawnPickup('hp', e.pos.clone()); else if (dropR < 0.095) spawnPickup('over', e.pos.clone());
 }
+function setAlpha(e, a) {
+  e.alpha = a; if (!e.fade) return;
+  for (const m of e.fade) m.opacity = a;
+  e.body.castShadow = a > 0.5;
+}
 function updateEnemies(dt) {
   const ts = breakT > 0 ? 0.25 : 1, edt = dt * ts;
   const pc = new V3(P.pos.x, P.pos.y + 1.0, P.pos.z);
+  const cpos = camera.position.clone(), cdir = camDir();
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i]; if (e.dead) { enemies.splice(i, 1); continue; }
     e.age += edt;
+    // Deadlock twins: tether + downed state
+    if (e.tether && e.partner) {
+      const L = e.center.distanceTo(e.partner.center);
+      e.tether.position.copy(e.center); e.tether.lookAt(e.partner.center);
+      const any = e.downed || e.partner.downed;
+      e.tether.scale.set(any ? 0.08 : 0.04, any ? 0.08 : 0.04, Math.max(0.01, L));
+      e.tether.material.color.set(any ? 0xff2a2a : 0xff8c42); e.tether.material.opacity = 0.45 + Math.sin(e.age * 8) * 0.25;
+    }
+    if (e.downed) {
+      e.downT -= edt;
+      e.mat.emissiveIntensity = 0.05 + (Math.sin(e.age * 18) > 0 ? 0.6 : 0);
+      e.g.rotation.z = lerp(e.g.rotation.z, 1.2, Math.min(1, dt * 8));
+      if (e.downT <= 0) {
+        e.downed = false; e.hp = e.maxHp * 0.6; e.g.rotation.z = 0;
+        burst(e.center, 0xff8c42, 24, 5, 0.5); popup(tx('Deadlock revived!', 'Deadlock dirildi!'));
+      }
+      continue;
+    }
+    if (e.g.userData.lock) e.g.userData.lock.rotation.y += dt * 3;
     if (e.type === 'leak') { e.scale = Math.min(2.1, 1 + e.age * 0.035); e.r = e.baseR * e.scale; e.g.scale.setScalar(e.scale); e.hitR = e.r * 1.15; }
     const to = new V3(P.pos.x - e.pos.x, 0, P.pos.z - e.pos.z); const dist = to.length(); to.divideScalar(dist || 1);
     const perp = new V3(-to.z, 0, to.x);
@@ -1150,6 +1322,7 @@ function updateEnemies(dt) {
       case 'race': des.copy(to).addScaledVector(perp, Math.sin(e.age * 5 + e.seed) * 0.9); break;
       case 'flaky': if (dist < 9) des.copy(to).negate(); else if (dist > 17) des.copy(to); else des.copy(perp).multiplyScalar(e.strafe); if (Math.random() < 0.004) e.strafe *= -1; break;
       case 'boss': des.copy(to).addScaledVector(perp, Math.sin(e.age * 0.7) * 0.6); break;
+      case 'ghost': des.copy(to).addScaledVector(perp, Math.sin(e.age * 1.3 + e.seed) * 0.5); break;
       default: des.copy(to);
     }
     if (e.avoidT > 0) { e.avoidT -= edt; des.addScaledVector(e.avoid, 1.6); }
@@ -1162,7 +1335,7 @@ function updateEnemies(dt) {
     const stopping = e.type !== 'flaky' && dist < e.r + P.r + 0.2;
     e.vel.lerp(des.multiplyScalar(stopping ? 0 : spd), Math.min(1, 6 * edt));
     e.pos.addScaledVector(e.vel, edt);
-    for (const o of OBS) {
+    if (e.type !== 'glitch') for (const o of OBS) {
       const n = pushOut(e.pos, e.r, o);
       if (n && e.avoidT <= 0) { e.avoid.set(-n[1], 0, n[0]); if (e.avoid.dot(to) < 0) e.avoid.negate(); e.avoidT = 0.6; }
     }
@@ -1170,14 +1343,27 @@ function updateEnemies(dt) {
     const sp = Math.hypot(e.vel.x, e.vel.z);
     if (sp > 0.2) e.g.rotation.y = Math.atan2(-e.vel.x, -e.vel.z); else e.g.rotation.y = Math.atan2(-to.x, -to.z);
     e.legs.forEach((l, k) => l.rotation.x = Math.sin(e.age * (6 + sp * 3) + k * 1.7) * 0.45);
-    e.center.set(e.pos.x, e.r * 0.8, e.pos.z);
+    const hover = e.type === 'ghost' ? 0.35 + Math.sin(e.age * 2.2) * 0.15 : 0;
+    e.pos.y = hover;
+    e.center.set(e.pos.x, e.r * 0.8 + hover, e.pos.z);
+    // Heisenbug: invisible while observed. Glitch: translucent and flickering inside walls.
+    if (e.type === 'ghost') {
+      const v = new V3().subVectors(e.center, cpos); const L = v.length(); v.divideScalar(L || 1);
+      const looked = v.dot(cdir) > Math.cos(0.33) && losClear(cpos, e.center);
+      setAlpha(e, lerp(e.alpha, looked ? 0.04 : 0.9, Math.min(1, dt * 10)));
+    } else if (e.type === 'glitch') {
+      const inWall = !!insideObs(new V3(e.pos.x, 0.5, e.pos.z), e.r * 0.3);
+      setAlpha(e, inWall ? (Math.random() < 0.3 ? 0.15 : 0.45) : (Math.random() < 0.04 ? 0.5 : 1));
+    }
     e.flashT -= dt; e.mat.emissiveIntensity = e.flashT > 0 ? 1.6 : (e.type === 'boss' ? 0.3 + Math.sin(e.age * 6) * 0.2 : 0.22);
-    if (e.bar.visible) { e.fg.scale.x = Math.max(0.001, e.hp / e.maxHp); e.bar.quaternion.copy(camera.quaternion); e.bar.quaternion.premultiply(e.g.quaternion.clone().invert()); }
+    if (e.bar.visible) {
+      if (e.alpha < 0.5) e.bar.visible = false;
+      else { e.fg.scale.x = Math.max(0.001, e.hp / e.maxHp); e.bar.quaternion.copy(camera.quaternion); e.bar.quaternion.premultiply(e.g.quaternion.clone().invert()); }
+    }
     if (e.g.userData.ring) { e.g.userData.ring.rotation.z += dt * 3; e.g.userData.ring.visible = Math.random() > 0.08; }
     // attacks
     e.atk -= edt;
-    const dy = P.pos.y - 0;
-    if (e.type !== 'flaky' && dist < e.r + P.r + 0.45 && dy < 2.4 + e.r && e.atk <= 0) {
+    if (e.type !== 'flaky' && dist < e.r + P.r + 0.45 && P.pos.y < 2.4 + e.r && e.atk <= 0) {
       e.atk = 0.9; damagePlayer(e.T.dmg * (e.type === 'leak' ? e.scale : 1) * (game.dmgScale || 1), e.center);
     }
     if (e.type === 'flaky') {
@@ -1205,7 +1391,7 @@ function updateEnemies(dt) {
   }
 }
 function clearEnemies() {
-  for (const e of enemies) { scene.remove(e.g); e.mat.dispose(); } enemies.length = 0;
+  for (const e of enemies) { scene.remove(e.g); e.mat.dispose(); removeTether(e); } enemies.length = 0;
   for (const p of projs) { scene.remove(p.m); p.m.material.dispose(); } projs.length = 0;
   for (const p of pickups) scene.remove(p.m); pickups.length = 0;
   game.boss = null; $('#bossbar').classList.add('hidden'); drone.visible = false;
@@ -1226,7 +1412,7 @@ function updatePickups(dt) {
     const d = Math.hypot(p.m.position.x - P.pos.x, p.m.position.z - P.pos.z);
     if (d < 1.4 && Math.abs(P.pos.y + 0.8 - p.m.position.y) < 2) {
       if (p.kind === 'hp') { P.hp = Math.min(P.maxHp, P.hp + 25); toast('<b>Hotfix</b> · +25 uptime'); }
-      else { overT = 8; toast('<b>Overclock</b> · 8 sn ateş hızı +60%'); }
+      else { overT = 8; toast(`<b>Overclock</b> · ${tx('+60% fire rate for 8 s', '8 sn ateş hızı +60%')}`); }
       sfx('pickup'); burst(p.m.position, p.kind === 'hp' ? 0x3ddc97 : 0xffd23f, 16, 4, 0.5);
       scene.remove(p.m); pickups.splice(i, 1); continue;
     }
@@ -1250,35 +1436,38 @@ function updateDrone(dt) {
   drone.position.lerp(tgt, Math.min(1, dt * 6));
   droneCD -= dt; if (droneCD > 0) return;
   let best = null, bd = 22;
-  for (const e of enemies) { if (e.dead) continue; const d = e.center.distanceTo(drone.position); if (d < bd && losClear(drone.position, e.center)) { bd = d; best = e; } }
-  if (best) { droneCD = 0.5; drone.lookAt(best.center); beam(drone.position.clone(), best.center.clone(), 0x36e2ff, 0.02, 0.08); if (damageEnemy(best, 9 * dmgMult(), null)) { } }
+  for (const e of enemies) { if (e.dead || e.downed || e.alpha < 0.3) continue; const d = e.center.distanceTo(drone.position); if (d < bd && losClear(drone.position, e.center)) { bd = d; best = e; } }
+  if (best) { droneCD = 0.5; drone.lookAt(best.center); beam(drone.position.clone(), best.center.clone(), 0x36e2ff, 0.02, 0.08); damageEnemy(best, 9 * dmgMult(), null); }
   else droneCD = 0.2;
 }
 
 /* ------------------------------ GAME STATE ------------------------------ */
-const game = { state: 'menu', mode: null, t: 0, score: 0, kills: 0, combo: 0, comboT: 0, wave: 0, timeLeft: 0, boss: null, hpScale: 1, spdScale: 1, dmgScale: 1, spawnT: 0, toSpawn: [], breakT: 0, paused: false, startAt: 0, ach: [] };
+const game = { state: 'menu', mode: null, t: 0, score: 0, kills: 0, combo: 0, comboT: 0, wave: 0, timeLeft: 0, boss: null, hpScale: 1, spdScale: 1, dmgScale: 1, spawnT: 0, toSpawn: [], breakT: 0, paused: false, seen: new Set() };
 const SPRINT_LEN = 180;
 let pointerLocked = false, lockFallback = false;
+const modeName = m => ({ sprint: 'Sprint', survival: tx('Survival', 'Hayatta Kal'), arena: tx('Live Arena', 'Canlı Arena') }[m] || m);
 
 function startRun(mode) {
   ensureAudio();
   clearEnemies();
-  Object.assign(game, { state: 'playing', mode, t: 0, score: 0, kills: 0, combo: 0, comboT: 0, wave: 0, timeLeft: SPRINT_LEN, hpScale: 1, spdScale: 1, dmgScale: 1, spawnT: 1.2, toSpawn: [], breakT: 0, paused: false, startAt: performance.now(), bossDone: false, ach: [] });
+  Object.assign(game, { state: 'playing', mode, t: 0, score: 0, kills: 0, combo: 0, comboT: 0, wave: 0, timeLeft: SPRINT_LEN, hpScale: 1, spdScale: 1, dmgScale: 1, spawnT: 1.2, toSpawn: [], breakT: 0, paused: false, bossDone: false, seen: new Set() });
   P.maxHp = pvp() ? 100 : 100 + 15 * upLv('hp'); P.hp = P.maxHp;
   P.vel.set(0, 0, 0); P.dashV.set(0, 0, 0); P.pitch = 0;
   if (mode === 'arena') { const s = arenaSpawn(); P.pos.copy(s); P.yaw = Math.atan2(s.x, s.z); }
   else { P.pos.set(0, 0, 8); P.yaw = 0; }
-  cds.dash = cds.grenade = cds.breakpoint = 0; breakT = 0; overT = 0;
+  for (const k in cds) cds[k] = 0;
+  breakT = 0; overT = 0; shieldT = 0; GR.active = false;
   resetWeapons();
-  $('#menu').classList.add('hidden'); $('#results').classList.add('hidden'); $('#pause').classList.add('hidden');
+  $('#menu').classList.add('hidden'); $('#results').classList.add('hidden'); $('#pause').classList.add('hidden'); $('#mvp').classList.add('hidden');
   $('#hud').classList.remove('hidden'); document.body.classList.add('playing');
-  $('#lblA').textContent = mode === 'sprint' ? 'SÜRE' : mode === 'survival' ? 'DALGA' : 'FRAG';
-  $('#lblC').textContent = mode === 'arena' ? 'ÖLÜM' : 'COMBO';
+  $('#lblA').textContent = mode === 'survival' ? tx('WAVE', 'DALGA') : tx('TIME', 'SÜRE');
+  $('#lblB').textContent = mode === 'arena' ? 'FRAG' : tx('SCORE', 'PUAN');
+  $('#lblC').textContent = mode === 'arena' ? tx('DEATHS', 'ÖLÜM') : 'COMBO';
   buildAbilityHUD(); updateHUDWeapons();
   if (mode === 'survival') nextWave();
-  if (mode === 'sprint') banner('SPRINT BAŞLADI', '3 dakika · ne kadar bug, o kadar puan');
+  if (mode === 'sprint') banner(tx('SPRINT STARTED', 'SPRINT BAŞLADI'), tx('3 minutes · more bugs, more points', '3 dakika · ne kadar bug, o kadar puan'));
   if (mode === 'arena') joinArena();
-  track('run_start', { mode, level: lvlNow() });
+  track('run_start', { mode, level: lvlNow(), language: LANG });
   setLobbyPresence();
 }
 function nextWave() {
@@ -1288,17 +1477,20 @@ function nextWave() {
   if (n % 5 === 0) { list.push('boss'); for (let i = 0; i < 3 + n; i++) list.push(pickType(n)); }
   else for (let i = 0; i < 5 + n * 3; i++) list.push(pickType(n));
   game.toSpawn = list; game.spawnT = 1.5;
-  banner(`DALGA ${n}`, n % 5 === 0 ? 'Prod alarm veriyor…' : `${list.length} bug yolda`); sfx('wave');
+  banner(tx(`WAVE ${n}`, `DALGA ${n}`), n % 5 === 0 ? tx('Prod is on fire…', 'Prod alarm veriyor…') : tx(`${list.length} bugs incoming`, `${list.length} bug yolda`)); sfx('wave');
   if (n >= 10) unlockAch('wave10');
   setLobbyPresence();
 }
+function weighted(w) { let s = w.reduce((a, b) => a + b[1], 0) * Math.random(); for (const [k, v] of w) { s -= v; if (s <= 0) return k; } return w[0][0]; }
 function pickType(n) {
-  const w = [['nullptr', 5]]; if (n >= 2) w.push(['race', 3]); if (n >= 3) w.push(['merge', 2]); if (n >= 4) w.push(['flaky', 2]); if (n >= 6) w.push(['leak', 1.3]);
-  let s = w.reduce((a, b) => a + b[1], 0) * Math.random(); for (const [t, k] of w) { s -= k; if (s <= 0) return t; } return 'nullptr';
+  const w = [['nullptr', 5]]; if (n >= 2) w.push(['race', 3]); if (n >= 3) w.push(['merge', 2]); if (n >= 4) w.push(['flaky', 2], ['glitch', 1.6]);
+  if (n >= 5) w.push(['ghost', 1.6]); if (n >= 6) w.push(['leak', 1.3]); if (n >= 7) w.push(['twin', 1.2]);
+  return weighted(w);
 }
 function sprintType(t) {
-  const w = [['nullptr', 5]]; if (t > 15) w.push(['race', 3]); if (t > 35) w.push(['merge', 2]); if (t > 55) w.push(['flaky', 2]); if (t > 80) w.push(['leak', 1.3]);
-  let s = w.reduce((a, b) => a + b[1], 0) * Math.random(); for (const [k, v] of w) { s -= v; if (s <= 0) return k; } return 'nullptr';
+  const w = [['nullptr', 5]]; if (t > 15) w.push(['race', 3]); if (t > 35) w.push(['merge', 2]); if (t > 45) w.push(['glitch', 1.6]); if (t > 55) w.push(['flaky', 2]);
+  if (t > 70) w.push(['ghost', 1.6]); if (t > 80) w.push(['leak', 1.3]); if (t > 95) w.push(['twin', 1.2]);
+  return weighted(w);
 }
 const alive = () => enemies.filter(e => !e.dead).length;
 function updateDirector(dt) {
@@ -1316,12 +1508,14 @@ function updateDirector(dt) {
     if (game.toSpawn.length && game.spawnT <= 0 && alive() < cap) { game.spawnT = Math.max(0.25, 0.75 - game.wave * 0.03); const t = game.toSpawn.shift(); spawnEnemy(t, null, t === 'boss' ? 1 + (game.wave / 5 - 1) * 0.6 : game.hpScale); }
     if (!game.toSpawn.length && alive() === 0) {
       const bonus = game.wave * 150; game.score += bonus; P.hp = Math.min(P.maxHp, P.hp + 15 + game.wave);
-      banner(`DALGA ${game.wave} TEMİZ`, `+${fmt(bonus)} bonus · uptime yenilendi`); game.breakT = 4;
+      banner(tx(`WAVE ${game.wave} CLEARED`, `DALGA ${game.wave} TEMİZ`), tx(`+${fmt(bonus)} bonus · uptime restored`, `+${fmt(bonus)} bonus · uptime yenilendi`)); game.breakT = 4;
     }
   }
 }
 function damagePlayer(dmg, from, attackerPeer) {
-  if (game.state !== 'playing' || (pvp() && ARENA.dead)) return;
+  if (game.state !== 'playing') return;
+  if (pvp() && (ARENA.dead || ARENA.inter || ARENA.protT > 0)) return;
+  if (shieldT > 0) { sfx('block'); burst(new V3(P.pos.x, P.pos.y + 1.1, P.pos.z), 0x36e2ff, 6, 3, 0.25); return; }
   P.hp -= dmg; hurtFlash = 1; sfx('hurt'); shake = Math.max(shake, 0.12);
   if (from) {
     const ang = Math.atan2(from.x - P.pos.x, from.z - P.pos.z);
@@ -1333,8 +1527,8 @@ function damagePlayer(dmg, from, attackerPeer) {
   if (P.hp <= 0) { P.hp = 0; if (pvp()) arenaDie(); else endRun('dead'); }
 }
 function useBreakpoint() {
-  if (!has('breakpoint') || cds.breakpoint > 0 || pvp()) return;
-  cds.breakpoint = 18 * cdMult(); breakT = 4; sfx('bp'); banner('⏸ BREAKPOINT', 'Zaman yavaşladı');
+  if (!has('breakpoint') || cds.breakpoint > 0 || pvp() || !canAct()) return;
+  cds.breakpoint = 18 * cdMult(); breakT = 4; sfx('bp'); banner('⏸ BREAKPOINT', tx('Time slowed down', 'Zaman yavaşladı'));
 }
 
 /* ------------------------------ RESULTS ------------------------------ */
@@ -1343,40 +1537,43 @@ function endRun(reason) {
   const mode = game.mode;
   game.state = 'results';
   if (mode === 'arena') leaveArena();
-  firing = false; document.body.classList.remove('playing');
+  firing = false; GR.active = false; document.body.classList.remove('playing');
   try { if (document.pointerLockElement) document.exitPointerLock(); } catch (e) { }
   $('#hud').classList.add('hidden'); $('#pause').classList.add('hidden'); $('#scoreboard').classList.add('hidden');
   const before = levelInfo(profile.xpTotal);
   let xp, coffee, recLine = '';
   const xpMul = 1 + 0.06 * upLv('xpb');
-  if (mode === 'arena') { xp = ARENA.kills * 60 + Math.min(10, Math.floor(game.t / 30)) * 15; coffee = ARENA.kills * 6 + Math.floor(game.t / 60) * 3; }
+  if (mode === 'arena') { xp = ARENA.totK * 60 + ARENA.mvps * 150 + Math.min(10, Math.floor(game.t / 30)) * 15; coffee = ARENA.totK * 6 + ARENA.mvps * 25 + Math.floor(game.t / 60) * 3; }
   else { xp = Math.floor(game.score / 10) + (mode === 'survival' ? (game.wave - 1) * 40 : 0); coffee = Math.floor(game.score / 180) + (mode === 'survival' ? game.wave * 3 : 0); }
   xp = Math.round(xp * xpMul);
   profile.xpTotal += xp; profile.coffee += coffee; profile.totalKills += game.kills; profile.runs++;
-  if (mode === 'sprint' && game.score > profile.best.sprint) { profile.best.sprint = Math.floor(game.score); if (game.score > 0) recLine = 'YENİ SPRINT REKORU!'; }
-  if (mode === 'survival' && game.wave > profile.best.wave) { profile.best.wave = game.wave; recLine = 'YENİ DALGA REKORU!'; }
-  if (mode === 'arena') profile.pvpKills += ARENA.kills;
+  if (mode === 'sprint' && game.score > profile.best.sprint) { profile.best.sprint = Math.floor(game.score); if (game.score > 0) recLine = tx('NEW SPRINT RECORD!', 'YENİ SPRINT REKORU!'); }
+  if (mode === 'survival' && game.wave > profile.best.wave) { profile.best.wave = game.wave; recLine = tx('NEW WAVE RECORD!', 'YENİ DALGA REKORU!'); }
+  if (mode === 'arena') { profile.pvpKills += ARENA.totK; if (ARENA.mvps) recLine = tx(`MVP × ${ARENA.mvps}`, `MVP × ${ARENA.mvps}`); }
   if (mode === 'sprint' && game.score >= 10000) unlockAch('sprint10');
   if (mode === 'sprint' && game.score >= 25000) unlockAch('sprint25');
   if (profile.totalKills >= 100) unlockAch('k100');
   if (profile.totalKills >= 1000) unlockAch('k1000');
   const after = levelInfo(profile.xpTotal);
-  track('run_end', { mode, reason, score: Math.floor(game.score), kills: game.kills, wave: game.wave, xp_gained: xp, coffee_gained: coffee, level: after.L, duration_sec: Math.round(game.t) });
+  track('run_end', { mode, reason, score: Math.floor(game.score), kills: game.kills, wave: game.wave, xp_gained: xp, coffee_gained: coffee, level: after.L, duration_sec: Math.round(game.t), language: LANG });
   if (after.L > before.L) track('level_up', { level: after.L, title: titleFor(after.L) });
   if (after.L >= 10) unlockAch('lvl10');
   saveAll();
   const unlocks = [];
   for (let L = before.L + 1; L <= after.L; L++) {
-    WEAPONS.filter(w => w.lvl === L).forEach(w => unlocks.push(`<b>Yeni silah:</b> ${w.icon} ${esc(w.name)} <span class="note">— tuş ${WEAPONS.indexOf(w) + 1}</span>`));
-    ABILITIES.filter(a => a.lvl === L).forEach(a => unlocks.push(`<b>Yeni yetenek:</b> ${a.icon} ${esc(a.name)} <span class="note">— ${esc(a.key)}</span>`));
-    TINTS.filter(t => t.lvl === L && L > 1).forEach(t => unlocks.push(`<b>Yeni renk:</b> ${esc(t.name)}`));
-    TITLES.filter(t => t[0] === L).forEach(t => unlocks.push(`<b>Yeni unvan:</b> ${esc(t[1])}`));
+    WEAPONS.filter(w => w.lvl === L).forEach(w => unlocks.push(`<b>${tx('New weapon', 'Yeni silah')}:</b> ${w.icon} ${esc(w.name)} <span class="note">— ${tx('key', 'tuş')} ${WEAPONS.indexOf(w) + 1}</span>`));
+    ABILITIES.filter(a => a.lvl === L).forEach(a => unlocks.push(`<b>${tx('New ability', 'Yeni yetenek')}:</b> ${a.icon} ${esc(loc(a.name))} <span class="note">— ${esc(loc(a.key))}</span>`));
+    TINTS.filter(t => t.lvl === L && L > 1).forEach(t => unlocks.push(`<b>${tx('New color', 'Yeni renk')}:</b> ${esc(loc(t.name))}`));
+    TITLES.filter(t => t[0] === L).forEach(t => unlocks.push(`<b>${tx('New title', 'Yeni unvan')}:</b> ${esc(loc(t[1]))}`));
   }
-  const head = { time: 'SPRINT BİTTİ', dead: mode === 'sprint' ? 'PROD ÇÖKTÜ' : 'SİSTEM ÇÖKTÜ', quit: 'TUR BİTTİ', arena: 'ARENADAN ÇIKTIN' }[reason] || 'TUR BİTTİ';
-  const sub = { sprint: 'Sprint · 3 dk', survival: `Hayatta Kal · ${game.wave}. dalgaya ulaştın`, arena: 'Canlı Arena' }[mode];
+  const head = {
+    time: tx('SPRINT OVER', 'SPRINT BİTTİ'), dead: mode === 'sprint' ? tx('PROD IS DOWN', 'PROD ÇÖKTÜ') : tx('SYSTEM CRASHED', 'SİSTEM ÇÖKTÜ'),
+    quit: tx('RUN OVER', 'TUR BİTTİ'), arena: tx('YOU LEFT THE ARENA', 'ARENADAN ÇIKTIN'),
+  }[reason] || tx('RUN OVER', 'TUR BİTTİ');
+  const sub = { sprint: tx('Sprint · 3 min', 'Sprint · 3 dk'), survival: tx(`Survival · reached wave ${game.wave}`, `Hayatta Kal · ${game.wave}. dalgaya ulaştın`), arena: modeName('arena') }[mode];
   const stats = mode === 'arena'
-    ? [[ARENA.kills, 'FRAG'], [ARENA.deaths, 'ÖLÜM'], [`+${fmt(xp)}`, 'XP']]
-    : [[fmt(game.score), 'PUAN'], [game.kills, 'BUG'], [`+${fmt(xp)}`, 'XP']];
+    ? [[ARENA.totK, 'FRAG'], [ARENA.totD, tx('DEATHS', 'ÖLÜM')], [`+${fmt(xp)}`, 'XP']]
+    : [[fmt(game.score), tx('SCORE', 'PUAN')], [game.kills, 'BUG'], [`+${fmt(xp)}`, 'XP']];
   $('#resBox').innerHTML = `
     <h2>${head}</h2><div class="sub">${sub}</div>
     ${recLine ? `<div class="newrec">★ ${recLine} ★</div>` : ''}
@@ -1385,8 +1582,8 @@ function endRun(reason) {
     ${after.L > before.L ? `<div class="lvup">LEVEL UP! ${before.L} → ${after.L}</div>` : ''}
     <div style="text-align:left;margin-top:10px"><div class="lbl">Level ${after.L} · ${esc(titleFor(after.L))}</div><div class="xpbar"><i id="resXp"></i></div><div class="pc-sub">${fmt(after.cur)} / ${fmt(after.need)} XP</div></div>
     ${unlocks.length ? `<div class="unl">${unlocks.map(u => `<div>${u}</div>`).join('')}</div>` : ''}
-    <div class="row"><button class="btn big" id="btnAgain">Tekrar oyna</button><button class="btn big ghost" id="btnMenu">Menü</button></div>
-    <p class="note" style="margin-top:12px">☕ kahvelerini Geliştirmeler sekmesinde harcayabilirsin.</p>`;
+    <div class="row"><button class="btn big" id="btnAgain">${tx('Play again', 'Tekrar oyna')}</button><button class="btn big ghost" id="btnMenu">${tx('Menu', 'Menü')}</button></div>
+    <p class="note" style="margin-top:12px">${tx('Spend your ☕ coffee in the Upgrades tab.', '☕ kahvelerini Geliştirmeler sekmesinde harcayabilirsin.')}</p>`;
   $('#results').classList.remove('hidden');
   requestAnimationFrame(() => { const b = $('#resXp'); if (b) b.style.width = (after.cur / after.need * 100) + '%'; });
   if (after.L > before.L) setTimeout(() => sfx('level'), 300);
@@ -1399,7 +1596,7 @@ function unlockAch(id) {
   if (profile.ach.includes(id)) return;
   const a = ACH.find(x => x.id === id); if (!a) return;
   profile.ach.push(id); profile.coffee += 75; saveLocal(); track('achievement_unlock', { achievement_id: id });
-  toast(`🏆 Rozet: <b>${esc(a.name)}</b> · +75 ☕`);
+  toast(`🏆 ${tx('Badge', 'Rozet')}: <b>${esc(loc(a.name))}</b> · +75 ☕`);
 }
 function showMenu() {
   game.state = 'menu'; game.mode = null;
@@ -1409,8 +1606,13 @@ function showMenu() {
 }
 
 /* ------------------------------ ARENA (PvP) ------------------------------ */
-const ARENA = { room: null, myPeer: null, remotes: new Map(), unsubs: [], kills: 0, deaths: 0, dead: false, respawnT: 0, shotN: 0, shot: null, lastAttacker: null, presT: 0, lastPres: '', joining: false };
+const ROUND_MS = 300000, PLAY_S = 290; // 5-minute rounds aligned to the clock: 290 s of play + 10 s MVP screen
+const STREAKS = [[3, ['KILLING SPREE!', '3\'LÜ SERİ!']], [5, ['UNSTOPPABLE!', 'DURDURULAMAZ!']], [7, ['LEGENDARY!', 'EFSANE!']], [10, ['GODLIKE!', 'TANRISAL!']]];
+const streakName = n => { let s = null; for (const [k, v] of STREAKS) if (n >= k) s = loc(v); return s; };
+const ARENA = { room: null, myPeer: null, remotes: new Map(), unsubs: [], kills: 0, deaths: 0, totK: 0, totD: 0, mvps: 0, streak: 0, dead: false, respawnT: 0, protT: 0, inter: false, round: -1, shotN: 0, shot: null, lastAttacker: null, lastWeapon: 0, presT: 0, lastPres: '', joining: false };
 const ARENA_SPAWNS = [[25, 6], [-25, 6], [25, -6], [-25, -6], [6, 25], [-6, 25], [6, -25], [-6, -25]];
+const arenaNow = () => Date.now() + (NET.clockOffset || 0);
+function arenaClock() { const now = arenaNow(); return { round: Math.floor(now / ROUND_MS), sec: (now % ROUND_MS) / 1000 }; }
 function arenaSpawn() {
   let best = null, bd = -1;
   for (const [x, z] of ARENA_SPAWNS) {
@@ -1420,20 +1622,21 @@ function arenaSpawn() {
   return best;
 }
 async function joinArena() {
-  Object.assign(ARENA, { kills: 0, deaths: 0, dead: false, respawnT: 0, shot: null, lastAttacker: null, lastPres: '', joining: true });
-  const note = $('#netnote'); note.textContent = 'Arenaya bağlanılıyor…'; note.classList.remove('hidden');
+  const c = arenaClock();
+  Object.assign(ARENA, { kills: 0, deaths: 0, totK: 0, totD: 0, mvps: 0, streak: 0, dead: false, respawnT: 0, protT: 2, inter: false, round: c.round, shot: null, lastAttacker: null, lastPres: '', joining: true });
+  const note = $('#netnote'); note.textContent = tx('Connecting to the arena…', 'Arenaya bağlanılıyor…'); note.classList.remove('hidden');
   try { ARENA.room = await CAP.room.join('arena'); }
-  catch (e) { ARENA.joining = false; note.textContent = 'Arenaya bağlanılamadı. Biraz sonra tekrar dene.'; return; }
+  catch (e) { ARENA.joining = false; note.textContent = tx('Could not connect to the arena. Try again in a bit.', 'Arenaya bağlanılamadı. Biraz sonra tekrar dene.'); return; }
   ARENA.joining = false;
   if (game.mode !== 'arena' || game.state !== 'playing') { try { ARENA.room.leave(); } catch (e) { } ARENA.room = null; return; }
   const R = ARENA.room;
   ARENA.unsubs.push(R.onPeers(ch => {
     for (const p of ch.peers) { if (p.isMe && p.sameTab) { ARENA.myPeer = p.peer; continue; } if (p.kind !== 'viewer') continue; upsertRemote(p); }
     for (const p of ch.left) removeRemote(p.peer);
-    const others = [...ARENA.remotes.values()].length;
-    note.textContent = others ? '' : 'Arenada şimdilik yalnızsın — iş arkadaşlarına linki at, girdikleri an burada belirirler.';
+    const others = ARENA.remotes.size;
+    note.textContent = others ? '' : tx('You\'re alone in the arena for now. Share the link; friends show up here the moment they join.', 'Arenada şimdilik yalnızsın. Linki paylaş; arkadaşların girdikleri an burada belirir.');
     note.classList.toggle('hidden', !!others);
-  }, () => { note.textContent = 'Arena bağlantısı koptu.'; note.classList.remove('hidden'); }));
+  }, () => { note.textContent = tx('Arena connection lost.', 'Arena bağlantısı koptu.'); note.classList.remove('hidden'); }));
   ARENA.unsubs.push(R.on('hit', m => {
     const d = m.data || {}; if (!ARENA.myPeer || d.to !== ARENA.myPeer || m.sameTab || ARENA.dead || game.state !== 'playing') return;
     const dmg = clamp(Number(d.dmg) || 0, 0, 200); const r = ARENA.remotes.get(m.peer);
@@ -1442,10 +1645,15 @@ async function joinArena() {
   }));
   ARENA.unsubs.push(R.on('kill', m => {
     const d = m.data || {}; if (d.victim !== m.peer) return;
-    const killer = d.killer, wName = (WEAPONS[Number(d.w)] || WEAPONS[0]).name;
+    const killer = d.killer, wName = (WEAPONS[Number(d.w)] || WEAPONS[0]).name, vs = Math.max(0, Math.floor(Number(d.vs) || 0));
     addFeed(peerName(killer), peerName(m.peer), wName);
+    if (vs >= 3 && killer) addFeedMsg(tx(`${peerName(killer)} ended ${peerName(m.peer)}'s ${vs}-kill streak`, `${peerName(killer)}, ${peerName(m.peer)} adlı oyuncunun ${vs}'li serisini bitirdi`));
     if (killer && killer === ARENA.myPeer && !m.sameTab) {
-      ARENA.kills++; game.kills++; game.score += 100; hitMarker(true); popup('+1 FRAG'); unlockAch('frag'); sfx('level');
+      ARENA.kills++; ARENA.totK++; ARENA.streak++; game.kills++; game.score += 100 + (vs >= 3 ? 50 : 0);
+      hitMarker(true); popup(vs >= 3 ? '+1 FRAG · SHUTDOWN' : '+1 FRAG'); unlockAch('frag'); sfx('level');
+      const sn = STREAKS.find(([k]) => k === ARENA.streak);
+      if (sn) { banner(loc(sn[1]), tx(`${ARENA.streak} kills without dying`, `Ölmeden ${ARENA.streak} frag`)); sfx('streak'); }
+      if (ARENA.streak >= 5) unlockAch('streak5');
     }
   }));
   sendArenaPresence(true);
@@ -1454,12 +1662,13 @@ function leaveArena() {
   for (const u of ARENA.unsubs) { try { u(); } catch (e) { } } ARENA.unsubs = [];
   for (const r of ARENA.remotes.values()) scene.remove(r.mesh); ARENA.remotes.clear();
   if (ARENA.room) { try { ARENA.room.leave(); } catch (e) { } } ARENA.room = null; ARENA.myPeer = null;
-  $('#respawn').classList.add('hidden'); $('#netnote').classList.add('hidden');
+  $('#respawn').classList.add('hidden'); $('#netnote').classList.add('hidden'); $('#mvp').classList.add('hidden');
 }
 function peerName(peer) {
-  if (!peer) return 'Biri'; if (peer === ARENA.myPeer) return myName();
-  const r = ARENA.remotes.get(peer); return r ? r.name : 'Biri';
+  if (!peer) return tx('Someone', 'Biri'); if (peer === ARENA.myPeer) return myName();
+  const r = ARENA.remotes.get(peer); return r ? r.name : tx('Someone', 'Biri');
 }
+const bubbleGeo = new THREE.SphereGeometry(1, 18, 12);
 function makeAvatar(color) {
   const g = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({ color: 0x2a3350, roughness: 0.5, metalness: 0.4 });
@@ -1470,7 +1679,9 @@ function makeAvatar(color) {
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.28, 14, 10), mat); head.position.y = 1.62; head.castShadow = true; g.add(head);
   const visor = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.1, 0.12), acc); visor.position.set(0, 1.65, -0.22); g.add(visor);
   const gun = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 0.6), acc); gun.position.set(0.32, 1.15, -0.35); g.add(gun);
-  g.userData.acc = acc;
+  const bubble = new THREE.Mesh(bubbleGeo, new THREE.MeshBasicMaterial({ color: 0x36e2ff, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending }));
+  bubble.scale.set(0.8, 1.1, 0.8); bubble.position.y = 1.0; bubble.visible = false; g.add(bubble);
+  g.userData.acc = acc; g.userData.bubble = bubble;
   return g;
 }
 function labelSprite(text, color) {
@@ -1492,7 +1703,7 @@ function upsertRemote(p) {
   const pr = p.presence || {};
   let r = ARENA.remotes.get(p.peer);
   if (!r) {
-    r = { peer: p.peer, by: p.by || (typeof pr.u === 'string' ? pr.u : null), mesh: null, target: new V3(), yaw: 0, alive: false, k: 0, d: 0, hp: 100, c: pr.c, nick: '', name: '', lastShot: null, seen: false };
+    r = { peer: p.peer, by: p.by || (typeof pr.u === 'string' ? pr.u : null), mesh: null, target: new V3(), yaw: 0, alive: false, prot: false, sh: false, k: 0, d: 0, ks: 0, hp: 100, c: pr.c, nick: '', name: '', lastShot: null, seen: false };
     r.mesh = makeAvatar(tintOf(pr.c)); r.mesh.visible = false; scene.add(r.mesh);
     ARENA.remotes.set(p.peer, r); if (r.by) resolveNames([r.by]);
   }
@@ -1500,13 +1711,18 @@ function upsertRemote(p) {
   if (pr.c !== r.c) { r.c = pr.c; r.mesh.userData.acc.color.set(tintOf(pr.c)); r.mesh.userData.acc.emissive.set(tintOf(pr.c)); r.label && (r.name = null); }
   refreshRemoteName(r);
   if (Array.isArray(pr.p) && pr.p.length === 3 && pr.p.every(Number.isFinite)) {
-    r.target.set(clamp(pr.p[0], -A, A), clamp(pr.p[1], 0, 6), clamp(pr.p[2], -A, A));
+    r.target.set(clamp(pr.p[0], -A, A), clamp(pr.p[1], 0, 10), clamp(pr.p[2], -A, A));
     if (!r.seen) { r.mesh.position.copy(r.target); r.seen = true; }
   }
   if (Array.isArray(pr.r) && Number.isFinite(pr.r[0])) r.yaw = pr.r[0];
   r.k = Math.max(0, Math.floor(Number(pr.k) || 0)); r.d = Math.max(0, Math.floor(Number(pr.d) || 0)); r.hp = clamp(Number(pr.h) || 0, 0, 999);
+  const ks = Math.max(0, Math.floor(Number(pr.ks) || 0));
+  if (ks > r.ks) { const sn = STREAKS.find(([k]) => k === ks); if (sn && r.seen) addFeedMsg(`${r.name} — ${loc(sn[1])}`); }
+  r.ks = ks;
   r.alive = r.seen && !pr.x && r.hp > 0;
+  r.prot = !!pr.pr; r.sh = !!pr.sh;
   r.mesh.visible = r.alive;
+  const bub = r.mesh.userData.bubble; bub.visible = r.alive && (r.prot || r.sh); bub.material.color.set(r.sh ? 0x36e2ff : 0xffffff);
   if (Array.isArray(pr.s) && pr.s.length === 4 && pr.s.every(Number.isFinite)) {
     if (r.lastShot !== null && pr.s[0] !== r.lastShot && r.alive) {
       const from = r.mesh.position.clone().add(new V3(0, 1.2, 0)); const to = new V3(pr.s[1], pr.s[2], pr.s[3]);
@@ -1518,25 +1734,55 @@ function upsertRemote(p) {
 }
 function removeRemote(peer) { const r = ARENA.remotes.get(peer); if (!r) return; scene.remove(r.mesh); ARENA.remotes.delete(peer); }
 function hitRemote(r, dmg) {
-  if (!ARENA.room || !r.alive) return;
+  if (!ARENA.room || !targetable(r)) return;
   ARENA.room.emit('hit', { to: r.peer, dmg: Math.round(dmg), w: WEAPONS.findIndex(w => w.id === curW) }).catch(() => { });
-  burst(r.mesh.position.clone().setY(r.mesh.position.y + 1.1), tintOf(r.c), 6, 3, 0.3);
+  burst(r.mesh.position.clone().setY(r.mesh.position.y + 1.1), r.sh ? 0x36e2ff : tintOf(r.c), 6, 3, 0.3);
 }
 function arenaDie() {
-  ARENA.dead = true; ARENA.deaths++; ARENA.respawnT = 3;
+  const vs = ARENA.streak;
+  ARENA.dead = true; ARENA.deaths++; ARENA.totD++; ARENA.streak = 0; ARENA.respawnT = 3; GR.active = false;
   burst(P.pos.clone().setY(P.pos.y + 1), tintColor(), 40, 7, 0.8);
   const killer = ARENA.lastAttacker;
-  if (ARENA.room && ARENA.myPeer) ARENA.room.emit('kill', { killer: killer || null, victim: ARENA.myPeer, w: ARENA.lastWeapon || 0 }).catch(() => { });
-  $('#respawnS').textContent = `${peerName(killer)} seni vurdu · yeniden doğuyorsun…`;
+  if (ARENA.room && ARENA.myPeer) ARENA.room.emit('kill', { killer: killer || null, victim: ARENA.myPeer, w: ARENA.lastWeapon || 0, vs }).catch(() => { });
+  $('#respawnS').textContent = tx(`${peerName(killer)} got you · respawning…`, `${peerName(killer)} seni vurdu · yeniden doğuyorsun…`);
   $('#respawn').classList.remove('hidden'); sendArenaPresence(true);
 }
+function arenaRespawn() {
+  ARENA.dead = false; P.hp = P.maxHp; P.pos.copy(arenaSpawn()); P.vel.set(0, 0, 0); P.dashV.set(0, 0, 0); P.yaw = Math.atan2(P.pos.x, P.pos.z);
+  ARENA.lastAttacker = null; ARENA.protT = 2; shieldT = 0; GR.active = false;
+  $('#respawn').classList.add('hidden'); resetWeapons(); sendArenaPresence(true);
+}
+function arenaStandings() {
+  const rows = [{ name: myName(), k: ARENA.kills, d: ARENA.deaths, me: true }, ...[...ARENA.remotes.values()].filter(r => r.seen).map(r => ({ name: r.name, k: r.k, d: r.d }))];
+  return rows.sort((a, b) => b.k - a.k || a.d - b.d);
+}
+function showMvp() {
+  const rows = arenaStandings(), top = rows[0];
+  const hasWinner = top && top.k > 0;
+  if (hasWinner && top.me && (rows.length < 2 || rows[1].k < top.k || rows[1].d > top.d)) {
+    ARENA.mvps++; unlockAch('mvp'); sfx('level'); track('arena_mvp', { kills: top.k });
+  }
+  $('#mvp').innerHTML = `<div class="crown">👑</div><div class="lbl">${tx('ROUND OVER · MVP', 'MAÇ BİTTİ · MVP')}</div>
+    <div class="who">${hasWinner ? esc(top.name) : '—'}</div>
+    <table>${rows.slice(0, 5).map((r, i) => `<tr style="${r.me ? 'color:var(--cyan)' : ''}"><td>${i + 1}. ${esc(r.name)}</td><td class="n">${r.k} / ${r.d}</td></tr>`).join('')}</table>
+    <div class="next" id="mvpNext"></div>`;
+  $('#mvp').classList.remove('hidden');
+}
 function updateArena(dt) {
-  if (ARENA.dead) {
-    ARENA.respawnT -= dt; $('#respawnS').textContent = `${peerName(ARENA.lastAttacker)} seni vurdu · ${Math.ceil(ARENA.respawnT)} sn`;
-    if (ARENA.respawnT <= 0) {
-      ARENA.dead = false; P.hp = P.maxHp; P.pos.copy(arenaSpawn()); P.vel.set(0, 0, 0); P.yaw = Math.atan2(P.pos.x, P.pos.z); ARENA.lastAttacker = null;
-      $('#respawn').classList.add('hidden'); resetWeapons(); sendArenaPresence(true);
-    }
+  const c = arenaClock();
+  if (c.round !== ARENA.round) {
+    // new round: reset per-round stats and respawn everyone at their own clock edge
+    ARENA.round = c.round; ARENA.inter = false; ARENA.kills = 0; ARENA.deaths = 0; ARENA.streak = 0;
+    $('#mvp').classList.add('hidden'); arenaRespawn();
+    banner(tx('NEW ROUND', 'YENİ MAÇ'), tx('5 minutes · most frags wins MVP', '5 dakika · en çok frag yapan MVP'));
+  } else if (!ARENA.inter && c.sec >= PLAY_S) {
+    ARENA.inter = true; firing = false; GR.active = false; showMvp();
+  }
+  if (ARENA.inter) { const el = $('#mvpNext'); if (el) el.textContent = tx(`Next round in ${Math.ceil(300 - c.sec)} s`, `Yeni maç ${Math.ceil(300 - c.sec)} sn sonra`); }
+  ARENA.protT = Math.max(0, ARENA.protT - dt);
+  if (ARENA.dead && !ARENA.inter) {
+    ARENA.respawnT -= dt; $('#respawnS').textContent = tx(`${peerName(ARENA.lastAttacker)} got you · ${Math.ceil(ARENA.respawnT)} s`, `${peerName(ARENA.lastAttacker)} seni vurdu · ${Math.ceil(ARENA.respawnT)} sn`);
+    if (ARENA.respawnT <= 0) arenaRespawn();
   }
   for (const r of ARENA.remotes.values()) {
     if (!r.seen) continue;
@@ -1547,16 +1793,21 @@ function updateArena(dt) {
 }
 function sendArenaPresence(force) {
   if (!ARENA.room) return;
-  const pr = { u: CAP.uid || null, n: profile.nick || '', c: profile.tint, p: [r2(P.pos.x), r2(P.pos.y), r2(P.pos.z)], r: [Math.round(P.yaw * 1000) / 1000, Math.round(P.pitch * 1000) / 1000], h: Math.ceil(P.hp), w: WEAPONS.findIndex(w => w.id === curW), k: ARENA.kills, d: ARENA.deaths, x: ARENA.dead ? 1 : 0, s: ARENA.shot };
+  const pr = {
+    u: CAP.uid || null, n: profile.nick || '', c: profile.tint, p: [r2(P.pos.x), r2(P.pos.y), r2(P.pos.z)], r: [Math.round(P.yaw * 1000) / 1000, Math.round(P.pitch * 1000) / 1000],
+    h: Math.ceil(P.hp), w: WEAPONS.findIndex(w => w.id === curW), k: ARENA.kills, d: ARENA.deaths, ks: ARENA.streak, x: ARENA.dead ? 1 : 0,
+    pr: ARENA.protT > 0 || ARENA.inter ? 1 : 0, sh: shieldT > 0 ? 1 : 0, s: ARENA.shot,
+  };
   const key = JSON.stringify(pr); if (!force && key === ARENA.lastPres) return; ARENA.lastPres = key;
   ARENA.room.presence(pr).catch(() => { });
 }
 function renderScoreboard() {
-  const rows = [{ name: myName() + ' (sen)', k: ARENA.kills, d: ARENA.deaths, me: true }, ...[...ARENA.remotes.values()].filter(r => r.seen).map(r => ({ name: r.name, k: r.k, d: r.d }))].sort((a, b) => b.k - a.k || a.d - b.d);
-  $('#scoreboard').innerHTML = `<div class="lbl" style="margin-bottom:8px">Canlı Arena · ${rows.length} oyuncu</div><table><tr><th>OYUNCU</th><th>FRAG</th><th>ÖLÜM</th></tr>${rows.map(r => `<tr style="${r.me ? 'color:var(--cyan)' : ''}"><td>${esc(r.name)}</td><td class="n">${r.k}</td><td class="n">${r.d}</td></tr>`).join('')}</table>`;
+  const rows = arenaStandings(), c = arenaClock();
+  $('#scoreboard').innerHTML = `<div class="lbl" style="margin-bottom:8px">${modeName('arena')} · ${tx(`${rows.length} players`, `${rows.length} oyuncu`)} · ${fmtClock(Math.max(0, PLAY_S - c.sec))}</div><table><tr><th>${tx('PLAYER', 'OYUNCU')}</th><th>FRAG</th><th>${tx('DEATHS', 'ÖLÜM')}</th></tr>${rows.map(r => `<tr style="${r.me ? 'color:var(--cyan)' : ''}"><td>${esc(r.name)}${r.me ? ` (${tx('you', 'sen')})` : ''}</td><td class="n">${r.k}</td><td class="n">${r.d}</td></tr>`).join('')}</table>`;
 }
 
 /* ------------------------------ HUD ------------------------------ */
+const fmtClock = s => { s = Math.ceil(s); return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`; };
 function banner(t, s) {
   $('#bannerT').textContent = t; $('#bannerS').textContent = s || '';
   const b = $('#banner'); b.classList.add('on'); clearTimeout(banner.to); banner.to = setTimeout(() => b.classList.remove('on'), 2200);
@@ -1568,15 +1819,16 @@ function popup(txt) {
 function toast(html) {
   const el = document.createElement('div'); el.className = 'toast'; el.innerHTML = html; $('#toasts').appendChild(el); setTimeout(() => el.remove(), 3300);
 }
+function pushFeed(el) { const f = $('#feed'); f.appendChild(el); if (f.children.length > 6) f.firstChild.remove(); setTimeout(() => el.remove(), 5000); }
 function addFeed(a, b, w) {
   const el = document.createElement('div'); el.className = 'fe';
   el.innerHTML = `<b></b> <span style="color:var(--muted)">[${esc(w)}]</span> <em></em>`;
-  el.querySelector('b').textContent = a; el.querySelector('em').textContent = b;
-  const f = $('#feed'); f.appendChild(el); if (f.children.length > 5) f.firstChild.remove(); setTimeout(() => el.remove(), 5000);
+  el.querySelector('b').textContent = a; el.querySelector('em').textContent = b; pushFeed(el);
 }
+function addFeedMsg(text) { const el = document.createElement('div'); el.className = 'fe sys'; el.textContent = text; pushFeed(el); }
 function buildAbilityHUD() {
   const list = ABILITIES.filter(a => a.cd && has(a.id) && !(pvp() && a.id === 'breakpoint'));
-  $('#abil').innerHTML = list.map(a => `<div class="ab" data-id="${a.id}">${a.icon}<div class="cd"></div><div class="k">${a.key === 'Shift' ? '⇧' : a.key}</div></div>`).join('');
+  $('#abil').innerHTML = list.map(a => `<div class="ab" data-id="${a.id}">${a.icon}<div class="cd"></div><div class="k">${a.key === 'Shift' ? '⇧' : esc(loc(a.key))}</div></div>`).join('');
 }
 function updateHUDWeapons() {
   $('#wslots').innerHTML = WEAPONS.map((w, i) => `<div class="ws ${w.id === curW ? 'on' : ''} ${has(w.id) ? '' : 'lock'}">${i + 1}</div>`).join('');
@@ -1588,15 +1840,20 @@ function updateHUD() {
   setText('hpnum', Math.ceil(P.hp));
   $('#hpfill').style.width = (P.hp / P.maxHp * 100) + '%';
   $('#lowhp').style.opacity = P.hp / P.maxHp < 0.3 ? 1 : 0;
+  $('#shieldfx').style.opacity = shieldT > 0 ? 1 : 0;
+  $('#protfx').style.opacity = pvp() && ARENA.protT > 0 && !ARENA.dead ? 1 : 0;
   const s = ws[curW], w = W(curW);
   const ammo = s.rel > 0 ? 'R…' : String(s.mag);
   if (hudCache.ammo !== ammo + magOf(w)) { hudCache.ammo = ammo + magOf(w); $('#ammo').innerHTML = `${ammo}<small> / ${magOf(w)}</small>`; }
-  setText('statScore', fmt(game.score));
-  if (game.mode === 'sprint') { const t = Math.ceil(game.timeLeft); setText('statA', `${Math.floor(t / 60)}:${String(t % 60).padStart(2, '0')}`); }
-  else if (game.mode === 'survival') setText('statA', String(game.wave));
-  else setText('statA', String(ARENA.kills));
-  if (game.mode === 'arena') setText('combo', String(ARENA.deaths));
-  else setText('combo', game.combo > 0 ? 'x' + (1 + Math.min(game.combo, 20) * 0.1).toFixed(1) : 'x1.0');
+  if (game.mode === 'arena') {
+    const c = arenaClock();
+    setText('statA', ARENA.inter ? 'MVP' : fmtClock(Math.max(0, PLAY_S - c.sec)));
+    setText('statScore', String(ARENA.kills)); setText('combo', String(ARENA.deaths));
+  } else {
+    setText('statScore', fmt(game.score));
+    if (game.mode === 'sprint') setText('statA', fmtClock(game.timeLeft)); else setText('statA', String(game.wave));
+    setText('combo', game.combo > 0 ? 'x' + (1 + Math.min(game.combo, 20) * 0.1).toFixed(1) : 'x1.0');
+  }
   document.querySelectorAll('#abil .ab').forEach(el => {
     const id = el.dataset.id, a = ABILITIES.find(x => x.id === id), cdv = cds[id] || 0, max = a.cd * cdMult();
     el.querySelector('.cd').style.setProperty('--p', (cdv > 0 ? cdv / max * 100 : 0) + '%'); el.classList.toggle('ready', cdv <= 0);
@@ -1616,7 +1873,7 @@ function requestLock() {
 }
 function setFallback() {
   if (lockFallback) return; lockFallback = true;
-  toast('Fare kilidi bu görünümde engellendi. Oyunu kendi sekmesinde açarsan tam kontrol gelir; şimdilik fareyi hareket ettirerek ya da <b>← →</b> ile dönebilirsin.');
+  toast(tx('Mouse lock is blocked in this view. Open the game in its own tab for full control; for now move the mouse or use <b>← →</b> to turn.', 'Fare kilidi bu görünümde engellendi. Oyunu kendi sekmesinde açarsan tam kontrol gelir; şimdilik fareyi hareket ettirerek ya da <b>← →</b> ile dönebilirsin.'));
 }
 document.addEventListener('pointerlockchange', () => {
   pointerLocked = document.pointerLockElement === canvas;
@@ -1627,8 +1884,8 @@ function pauseGame() {
   if (game.state !== 'playing') return;
   firing = false;
   if (game.mode !== 'arena') game.paused = true;
-  $('#pauseSub').textContent = game.mode === 'arena' ? 'Arena devam ediyor — dikkat, hâlâ vurulabilirsin.' : 'Breakpoint\'e takıldın.';
-  $('#pauseNote').textContent = 'İpucu: Esc fareyi bırakır. Devam etmek için tıkla.';
+  $('#pauseSub').textContent = game.mode === 'arena' ? tx('The arena keeps going. Careful, you can still be shot.', 'Arena devam ediyor. Dikkat, hâlâ vurulabilirsin.') : tx('You hit a breakpoint.', 'Breakpoint\'e takıldın.');
+  $('#pauseNote').textContent = tx('Tip: Esc releases the mouse. Click to continue.', 'İpucu: Esc fareyi bırakır. Devam etmek için tıkla.');
   $('#pause').classList.remove('hidden');
 }
 function resumeGame() { $('#pause').classList.add('hidden'); game.paused = false; requestLock(); }
@@ -1661,9 +1918,12 @@ window.addEventListener('keydown', e => {
     case 'KeyR': reload(); break;
     case 'KeyG': throwGrenade(); break;
     case 'KeyQ': useBreakpoint(); break;
+    case 'KeyE': if (!e.repeat) useGrapple(); break;
+    case 'KeyF': useShield(); break;
+    case 'KeyV': useBlink(); break;
     case 'KeyP': if (lockFallback) pauseGame(); else document.exitPointerLock(); break;
     case 'Tab': if (pvp()) { renderScoreboard(); $('#scoreboard').classList.remove('hidden'); } break;
-    default: { const m = e.code.match(/^Digit([1-5])$/); if (m) switchW(WEAPONS[+m[1] - 1].id); }
+    default: { const m = e.code.match(/^Digit([1-9])$/); if (m && WEAPONS[+m[1] - 1]) switchW(WEAPONS[+m[1] - 1].id); }
   }
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Tab') $('#scoreboard').classList.add('hidden'); });
@@ -1676,6 +1936,7 @@ window.addEventListener('resize', () => {
 /* ------------------------------ MENU ------------------------------ */
 let curTab = 'play', lbTab = 'sprint';
 document.querySelectorAll('#tabs .tab').forEach(b => b.onclick = () => { curTab = b.dataset.tab; if (curTab === 'lb') fetchScores(); document.querySelectorAll('#tabs .tab').forEach(x => x.classList.toggle('on', x === b)); renderMenu(); });
+document.querySelectorAll('.langsw button').forEach(b => b.onclick = () => setLang(b.dataset.lang));
 function avatarColor() { const t = TINTS[profile.tint] || TINTS[0]; return t.c < 0 ? 'linear-gradient(135deg,#ff3d81,#ffd23f,#36e2ff)' : '#' + new THREE.Color(t.c).getHexString(); }
 function renderProfileCard() {
   const li = levelInfo(profile.xpTotal), nm = myName();
@@ -1686,57 +1947,62 @@ function renderProfileCard() {
     <div class="lvl">${li.L}<small>LEVEL</small></div>
     <div class="coffee">${fmt(profile.coffee)} ☕</div>`;
 }
+const pill = l => `<span class="pill">Lv ${l}</span>`;
 function renderMenu() {
   renderProfileCard(); renderOnline();
   const B = $('#tabBody'), L = lvlNow();
   if (curTab === 'play') {
     const inArena = lobbyPeers.filter(p => p.presence && p.presence.st === 'arena' && !(p.isMe && p.sameTab)).length;
-    B.innerHTML = `${NET.server ? `<div class="panel" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span style="font-weight:600">Takma adın</span><input id="qNick" maxlength="16" value="${esc(profile.nick)}" style="background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 12px;font-family:var(--head);font-size:14px;user-select:text;width:200px"><span class="note">Liderlik tablosunda ve arenada iş arkadaşların bunu görür.</span></div>` : ''}<div class="panel"><h3>Mod seç</h3><div class="modes">
-      <button class="mode" data-mode="sprint"><div class="ic">⏱</div><div class="nm">Sprint</div><div class="ds">3 dakika. Buglar giderek hızlanır, ortada bir Prod Incident patlar. Build bitmeden en yüksek puanı yap.</div><div class="bs">Rekor: ${fmt(profile.best.sprint)}</div></button>
-      <button class="mode" data-mode="survival"><div class="ic">🌊</div><div class="nm">Hayatta Kal</div><div class="ds">Sonsuz dalga; her 5. dalgada boss. Uzun build'ler ve bitmeyen code review'lar için.</div><div class="bs">Rekor: ${profile.best.wave ? profile.best.wave + '. dalga' : '—'}</div></button>
-      <button class="mode pvp" data-mode="arena" ${CAP.room ? '' : 'disabled'}><div class="ic">⚔</div><div class="nm">Canlı Arena</div><div class="ds">${CAP.room ? 'İş arkadaşlarınla gerçek zamanlı herkes-herkese karşı. Geliştirmeler kapalı, adil dövüş; kazandığın XP yine sayılır.' : 'Canlı arena şu an kapalı: oyun sunucusuna bağlanılamadı.'}</div><div class="bs">${CAP.room ? `<span class="live">${inArena ? inArena + ' KİŞİ ARENADA' : 'CANLI'}</span>` : ''}</div></button>
+    const nickPanel = NET.server ? `<div class="panel" style="margin-bottom:16px;display:flex;gap:14px;align-items:center;flex-wrap:wrap"><span style="font-weight:600">${tx('Your nickname', 'Takma adın')}</span><input id="qNick" maxlength="16" value="${esc(profile.nick)}" style="background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:8px;color:var(--text);padding:8px 12px;font-family:var(--head);font-size:14px;user-select:text;width:200px"><span class="note">${tx('Shown on the leaderboard and in the arena.', 'Liderlik tablosunda ve arenada bu görünür.')}</span></div>` : '';
+    B.innerHTML = `${nickPanel}<div class="panel"><h3>${tx('Choose a mode', 'Mod seç')}</h3><div class="modes">
+      <button class="mode" data-mode="sprint"><div class="ic">⏱</div><div class="nm">Sprint</div><div class="ds">${tx('3 minutes. Bugs keep speeding up and a Prod Incident erupts halfway. Score as much as you can.', '3 dakika. Buglar giderek hızlanır, ortada bir Prod Incident patlar. En yüksek puanı yap.')}</div><div class="bs">${tx('Best', 'Rekor')}: ${fmt(profile.best.sprint)}</div></button>
+      <button class="mode" data-mode="survival"><div class="ic">🌊</div><div class="nm">${modeName('survival')}</div><div class="ds">${tx('Endless waves with a boss every 5th wave. New bug types show up as you go deeper.', 'Sonsuz dalga, her 5. dalgada boss. İlerledikçe yeni bug türleri çıkar.')}</div><div class="bs">${tx('Best', 'Rekor')}: ${profile.best.wave ? tx(`wave ${profile.best.wave}`, `${profile.best.wave}. dalga`) : '—'}</div></button>
+      <button class="mode pvp" data-mode="arena" ${CAP.room ? '' : 'disabled'}><div class="ic">⚔</div><div class="nm">${modeName('arena')}</div><div class="ds">${CAP.room ? tx('Real-time free-for-all with friends. 5-minute rounds with an MVP at the end. Upgrades are off; XP still counts.', 'Arkadaşlarınla gerçek zamanlı herkes herkese karşı. 5 dakikalık maçlar, sonunda MVP. Geliştirmeler kapalı; XP yine sayılır.') : tx('The live arena is unavailable: could not reach the game server.', 'Canlı arena şu an kapalı: oyun sunucusuna bağlanılamadı.')}</div><div class="bs">${CAP.room ? `<span class="live">${inArena ? tx(`${inArena} IN THE ARENA`, `${inArena} KİŞİ ARENADA`) : tx('LIVE', 'CANLI')}</span>` : ''}</div></button>
     </div>
     <div class="keys">
-      <div><kbd>W A S D</kbd> hareket</div><div><kbd>Fare</kbd> nişan · <kbd>Sol tık</kbd> ateş</div><div><kbd>Space</kbd> zıpla</div><div><kbd>R</kbd> şarjör</div>
-      <div><kbd>1-5</kbd> / <kbd>Tekerlek</kbd> silah</div><div><kbd>Shift</kbd> dash ${L < 2 ? '<span class="pill">Lv 2</span>' : ''}</div>
-      <div><kbd>G</kbd> / <kbd>Sağ tık</kbd> bomba ${L < 6 ? '<span class="pill">Lv 6</span>' : ''}</div><div><kbd>Q</kbd> breakpoint ${L < 9 ? '<span class="pill">Lv 9</span>' : ''}</div>
-      <div><kbd>Tab</kbd> arena skor tablosu</div><div><kbd>Esc</kbd> duraklat</div>
+      <div><kbd>W A S D</kbd> ${tx('move', 'hareket')}</div><div><kbd>${tx('Mouse', 'Fare')}</kbd> ${tx('aim', 'nişan')} · <kbd>${tx('Left click', 'Sol tık')}</kbd> ${tx('fire', 'ateş')}</div><div><kbd>Space</kbd> ${tx('jump', 'zıpla')}</div><div><kbd>R</kbd> ${tx('reload', 'şarjör')}</div>
+      <div><kbd>1-${WEAPONS.length}</kbd> / <kbd>${tx('Wheel', 'Tekerlek')}</kbd> ${tx('weapon', 'silah')}</div><div><kbd>Shift</kbd> dash ${L < 2 ? pill(2) : ''}</div>
+      <div><kbd>E</kbd> ${tx('grapple', 'kanca')} ${L < 5 ? pill(5) : ''}</div><div><kbd>G</kbd> / <kbd>${tx('Right click', 'Sağ tık')}</kbd> ${tx('grenade', 'bomba')} ${L < 6 ? pill(6) : ''}</div>
+      <div><kbd>F</kbd> ${tx('shield', 'kalkan')} ${L < 8 ? pill(8) : ''}</div><div><kbd>Q</kbd> breakpoint ${L < 9 ? pill(9) : ''}</div><div><kbd>V</kbd> ${tx('blink', 'ışınlanma')} ${L < 12 ? pill(12) : ''}</div>
+      <div><kbd>Tab</kbd> ${tx('arena scoreboard', 'arena skor tablosu')}</div><div><kbd>Esc</kbd> ${tx('pause', 'duraklat')}</div>
     </div></div>
-    <div class="panel" style="margin-top:16px"><h3>Rozetler · ${profile.ach.length}/${ACH.length}</h3><div class="badges">${ACH.map(a => `<div class="badge ${profile.ach.includes(a.id) ? 'on' : ''}"><b>${esc(a.name)}</b>${esc(a.desc)}</div>`).join('')}</div></div>`;
+    <div class="panel" style="margin-top:16px"><h3>${tx('Badges', 'Rozetler')} · ${profile.ach.length}/${ACH.length}</h3><div class="badges">${ACH.map(a => `<div class="badge ${profile.ach.includes(a.id) ? 'on' : ''}"><b>${esc(loc(a.name))}</b>${esc(loc(a.desc))}</div>`).join('')}</div></div>`;
     B.querySelectorAll('.mode').forEach(b => b.onclick = () => { if (b.disabled) return; requestLock(); startRun(b.dataset.mode); });
-    const q = $('#qNick'); if (q) q.onchange = () => { const v = q.value.replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 16); if (v) profile.nick = v; q.value = profile.nick; saveAll(); renderProfileCard(); setLobbyPresence(); };
+    const q = $('#qNick'); if (q) q.onchange = () => { const v = cleanNick(q.value); if (v) profile.nick = v; q.value = profile.nick; saveAll(); renderProfileCard(); setLobbyPresence(); };
   } else if (curTab === 'arsenal') {
-    B.innerHTML = `<div class="panel"><h3>Silahlar</h3><div class="grid">${WEAPONS.map((w, i) => `
-      <div class="card ${L >= w.lvl ? '' : 'lock'}"><div class="h"><span class="n">${w.icon} ${esc(w.name)}</span><span class="pill ${L >= w.lvl ? 'ok' : ''}">${L >= w.lvl ? 'Tuş ' + (i + 1) : 'Lv ' + w.lvl}</span></div>
-      <div class="d">${esc(w.desc)}</div><div class="s">${w.pellets > 1 ? w.pellets + '×' : ''}${w.dmg} hasar · ${w.rate}/sn · ${w.mag} mermi</div></div>`).join('')}</div></div>
-    <div class="panel" style="margin-top:16px"><h3>Yetenekler</h3><div class="grid">${ABILITIES.map(a => `
-      <div class="card ${L >= a.lvl ? '' : 'lock'}"><div class="h"><span class="n">${a.icon} ${esc(a.name)}</span><span class="pill ${L >= a.lvl ? 'ok' : ''}">${L >= a.lvl ? esc(a.key) : 'Lv ' + a.lvl}</span></div><div class="d">${esc(a.desc)}</div></div>`).join('')}</div></div>
-    <div class="panel" style="margin-top:16px"><h3>Silah rengi</h3><div class="tints">${TINTS.map((t, i) => `
-      <button class="tint ${profile.tint === i ? 'on' : ''}" data-i="${i}" ${L >= t.lvl ? '' : 'disabled'}><div class="sw" style="background:${t.c < 0 ? 'linear-gradient(135deg,#ff3d81,#ffd23f,#36e2ff,#7cff4f)' : '#' + new THREE.Color(t.c).getHexString()}"></div>${esc(t.name)}${L >= t.lvl ? '' : '<br>Lv ' + t.lvl}</button>`).join('')}</div></div>
-    <div class="panel" style="margin-top:16px"><h3>Kariyer yolu</h3><div class="road">${TITLES.map(([l, n], i) => { const nx = TITLES[i + 1]; const cur = L >= l && (!nx || L < nx[0]); return `<span class="${cur ? 'cur' : L >= l ? 'on' : ''}">Lv ${l} · ${esc(n)}</span>`; }).join('')}</div></div>`;
+    B.innerHTML = `<div class="panel"><h3>${tx('Weapons', 'Silahlar')}</h3><div class="grid">${WEAPONS.map((w, i) => `
+      <div class="card ${L >= w.lvl ? '' : 'lock'}"><div class="h"><span class="n">${w.icon} ${esc(w.name)}</span><span class="pill ${L >= w.lvl ? 'ok' : ''}">${L >= w.lvl ? tx('Key ', 'Tuş ') + (i + 1) : 'Lv ' + w.lvl}</span></div>
+      <div class="d">${esc(loc(w.desc))}</div><div class="s">${w.pellets > 1 ? w.pellets + '×' : ''}${w.dmg} ${tx('dmg', 'hasar')} · ${w.rate}/${tx('s', 'sn')} · ${w.mag} ${tx('rounds', 'mermi')}${w.bounces ? ' · ' + tx(`${w.bounces} bounces`, `${w.bounces} sekme`) : ''}</div></div>`).join('')}</div></div>
+    <div class="panel" style="margin-top:16px"><h3>${tx('Abilities', 'Yetenekler')}</h3><div class="grid">${ABILITIES.map(a => `
+      <div class="card ${L >= a.lvl ? '' : 'lock'}"><div class="h"><span class="n">${a.icon} ${esc(loc(a.name))}</span><span class="pill ${L >= a.lvl ? 'ok' : ''}">${L >= a.lvl ? esc(loc(a.key)) : 'Lv ' + a.lvl}</span></div><div class="d">${esc(loc(a.desc))}</div></div>`).join('')}</div></div>
+    <div class="panel" style="margin-top:16px"><h3>${tx('Weapon color', 'Silah rengi')}</h3><div class="tints">${TINTS.map((t, i) => `
+      <button class="tint ${profile.tint === i ? 'on' : ''}" data-i="${i}" ${L >= t.lvl ? '' : 'disabled'}><div class="sw" style="background:${t.c < 0 ? 'linear-gradient(135deg,#ff3d81,#ffd23f,#36e2ff,#7cff4f)' : '#' + new THREE.Color(t.c).getHexString()}"></div>${esc(loc(t.name))}${L >= t.lvl ? '' : '<br>Lv ' + t.lvl}</button>`).join('')}</div></div>
+    <div class="panel" style="margin-top:16px"><h3>${tx('Career path', 'Kariyer yolu')}</h3><div class="road">${TITLES.map(([l, n], i) => { const nx = TITLES[i + 1]; const cur = L >= l && (!nx || L < nx[0]); return `<span class="${cur ? 'cur' : L >= l ? 'on' : ''}">Lv ${l} · ${esc(loc(n))}</span>`; }).join('')}</div></div>`;
     B.querySelectorAll('.tint').forEach(b => b.onclick = () => { profile.tint = +b.dataset.i; saveAll(); renderMenu(); setLobbyPresence(); });
   } else if (curTab === 'shop') {
-    B.innerHTML = `<div class="panel"><h3>Kalıcı geliştirmeler · ${fmt(profile.coffee)} ☕</h3><div class="grid">${UPGRADES.map(u => {
+    B.innerHTML = `<div class="panel"><h3>${tx('Permanent upgrades', 'Kalıcı geliştirmeler')} · ${fmt(profile.coffee)} ☕</h3><div class="grid">${UPGRADES.map(u => {
       const l = upLv(u.id), c = upCost(u, l), maxed = l >= u.max;
-      return `<div class="card"><div class="h"><span class="n">${u.icon} ${esc(u.name)}</span><span class="pill">${l}/${u.max}</span></div>
+      return `<div class="card"><div class="h"><span class="n">${u.icon} ${esc(loc(u.name))}</span><span class="pill">${l}/${u.max}</span></div>
         <div class="pips">${Array.from({ length: u.max }, (_, i) => `<i class="${i < l ? 'on' : ''}"></i>`).join('')}</div>
-        <div class="d">${l ? 'Şu an: ' + esc(u.desc(l)) : 'Henüz alınmadı'}${maxed ? '' : '<br>Sonraki: ' + esc(u.desc(l + 1))}</div>
-        <button class="btn" data-u="${u.id}" ${maxed || profile.coffee < c ? 'disabled' : ''}>${maxed ? 'MAKS' : fmt(c) + ' ☕'}</button></div>`;
+        <div class="d">${l ? tx('Now: ', 'Şu an: ') + esc(u.desc(l)) : tx('Not bought yet', 'Henüz alınmadı')}${maxed ? '' : '<br>' + tx('Next: ', 'Sonraki: ') + esc(u.desc(l + 1))}</div>
+        <button class="btn" data-u="${u.id}" ${maxed || profile.coffee < c ? 'disabled' : ''}>${maxed ? 'MAX' : fmt(c) + ' ☕'}</button></div>`;
     }).join('')}</div>
-    <p class="note" style="margin-top:12px">☕ her turda puanına göre kazanılır. Rozetler +75 ☕ verir. Canlı Arena'da geliştirmeler devre dışıdır.</p></div>`;
+    <p class="note" style="margin-top:12px">${tx('You earn ☕ every run based on your score. Badges give +75 ☕. Upgrades are disabled in the Live Arena.', '☕ her turda puanına göre kazanılır. Rozetler +75 ☕ verir. Canlı Arena\'da geliştirmeler devre dışıdır.')}</p></div>`;
     B.querySelectorAll('[data-u]').forEach(b => b.onclick = () => {
       const u = UPGRADES.find(x => x.id === b.dataset.u), l = upLv(u.id), c = upCost(u, l);
       if (l >= u.max || profile.coffee < c) return; profile.coffee -= c; profile.up[u.id] = l + 1; ensureAudio(); sfx('buy'); track('upgrade_buy', { upgrade: u.id, upgrade_level: l + 1 }); saveAll(); renderMenu();
     });
   } else if (curTab === 'lb') renderLB();
   else if (curTab === 'settings') {
-    B.innerHTML = `<div class="panel"><h3>Ayarlar</h3>
-      <div class="set"><label for="sNick">Oyuncu adı</label><input type="text" id="sNick" maxlength="16" placeholder="${esc(CAP.myName || 'İsteğe bağlı takma ad')}" value="${esc(profile.nick)}"></div>
-      <div class="set"><label for="sSens">Fare hassasiyeti</label><input type="range" id="sSens" min="0.2" max="3" step="0.05" value="${settings.sens}"><output>${settings.sens.toFixed(2)}</output></div>
-      <div class="set"><label for="sFov">Görüş açısı (FOV)</label><input type="range" id="sFov" min="65" max="105" step="1" value="${settings.fov}"><output>${settings.fov}</output></div>
-      <div class="set"><label for="sVol">Ses</label><input type="range" id="sVol" min="0" max="1" step="0.05" value="${settings.vol}"><output>${Math.round(settings.vol * 100)}%</output></div>
-      <p class="note">${NET.server ? 'İlerlemen bu tarayıcıda saklanıyor; rekorların ortak liderlik tablosuna gönderiliyor.' : CAP.db && CAP.uid ? 'İlerlemen hesabına kaydediliyor; başka cihazdan açınca kaldığın yerden devam edersin.' : 'İlerlemen bu tarayıcıda saklanıyor.'}</p></div>`;
-    const nick = $('#sNick'); nick.onchange = () => { profile.nick = nick.value.replace(/[^\p{L}\p{N} _.\-]/gu, '').trim().slice(0, 16); saveAll(); renderProfileCard(); setLobbyPresence(); };
+    B.innerHTML = `<div class="panel"><h3>${tx('Settings', 'Ayarlar')}</h3>
+      <div class="set"><span>${tx('Language', 'Dil')}</span><div class="langsw" style="grid-column:2 / 4"><button data-lang="en" class="${LANG === 'en' ? 'on' : ''}">English</button><button data-lang="tr" class="${LANG === 'tr' ? 'on' : ''}">Türkçe</button></div></div>
+      <div class="set"><label for="sNick">${tx('Player name', 'Oyuncu adı')}</label><input type="text" id="sNick" maxlength="16" placeholder="${esc(CAP.myName || tx('Optional nickname', 'İsteğe bağlı takma ad'))}" value="${esc(profile.nick)}"></div>
+      <div class="set"><label for="sSens">${tx('Mouse sensitivity', 'Fare hassasiyeti')}</label><input type="range" id="sSens" min="0.2" max="3" step="0.05" value="${settings.sens}"><output>${(+settings.sens).toFixed(2)}</output></div>
+      <div class="set"><label for="sFov">${tx('Field of view (FOV)', 'Görüş açısı (FOV)')}</label><input type="range" id="sFov" min="65" max="105" step="1" value="${settings.fov}"><output>${settings.fov}</output></div>
+      <div class="set"><label for="sVol">${tx('Volume', 'Ses')}</label><input type="range" id="sVol" min="0" max="1" step="0.05" value="${settings.vol}"><output>${Math.round(settings.vol * 100)}%</output></div>
+      <p class="note">${NET.server ? tx('Your progress is saved in this browser; your records go to the shared leaderboard.', 'İlerlemen bu tarayıcıda saklanıyor; rekorların ortak liderlik tablosuna gönderiliyor.') : CAP.db && CAP.uid ? tx('Your progress is saved to your account; pick up where you left off on any device.', 'İlerlemen hesabına kaydediliyor; başka cihazdan açınca kaldığın yerden devam edersin.') : tx('Your progress is saved in this browser.', 'İlerlemen bu tarayıcıda saklanıyor.')}</p></div>`;
+    B.querySelectorAll('.langsw button').forEach(b => b.onclick = () => setLang(b.dataset.lang));
+    const nick = $('#sNick'); nick.onchange = () => { const v = cleanNick(nick.value); if (v || !NET.server) profile.nick = v; nick.value = profile.nick; saveAll(); renderProfileCard(); setLobbyPresence(); };
     const bind = (id, key, f) => { const el = $('#' + id); el.oninput = () => { settings[key] = +el.value; el.nextElementSibling.textContent = f(settings[key]); saveSettings(); applySettings(); }; };
     bind('sSens', 'sens', v => v.toFixed(2)); bind('sFov', 'fov', v => v); bind('sVol', 'vol', v => Math.round(v * 100) + '%');
   }
@@ -1745,43 +2011,49 @@ function applySettings() { camera.fov = settings.fov; camera.updateProjectionMat
 function renderLBIfOpen() { if (game.state === 'menu' && curTab === 'lb') renderLB(); }
 function renderLB() {
   const B = $('#tabBody');
-  const cols = { sprint: ['Sprint rekoru', s => s.sprint || 0, v => fmt(v)], wave: ['En yüksek dalga', s => s.wave || 0, v => v ? v + '. dalga' : '—'], level: ['Level', s => s.xp || 0, (v, s) => 'Lv ' + (s.level || 1)], pvp: ['Arena fragı', s => s.pvp || 0, v => fmt(v)] };
+  const cols = {
+    sprint: [tx('Sprint best', 'Sprint rekoru'), s => s.sprint || 0, v => fmt(v)],
+    wave: [tx('Highest wave', 'En yüksek dalga'), s => s.wave || 0, v => v ? tx(`wave ${v}`, `${v}. dalga`) : '—'],
+    level: ['Level', s => s.xp || 0, (v, s) => 'Lv ' + (s.level || 1)],
+    pvp: [tx('Arena frags', 'Arena fragı'), s => s.pvp || 0, v => fmt(v)],
+  };
   const [label, get, show] = cols[lbTab];
   let rows = [], msg = '';
-  if ((!CAP.db && !NET.server) || !CAP.uid) { msg = 'Ortak liderlik tablosu Claude üzerinden paylaşılan sürümde çalışır. Burada sadece bu tarayıcıdaki rekorların görünüyor.'; rows = [{ id: 'me', nick: profile.nick, sprint: profile.best.sprint, wave: profile.best.wave, level: lvlNow(), xp: profile.xpTotal, pvp: profile.pvpKills }]; }
+  if ((!CAP.db && !NET.server) || !CAP.uid) { msg = tx('The shared leaderboard needs the game server. Only your own records in this browser are shown.', 'Ortak liderlik tablosu oyun sunucusuyla çalışır. Burada sadece bu tarayıcıdaki rekorların görünüyor.'); rows = [{ id: 'me', nick: profile.nick, sprint: profile.best.sprint, wave: profile.best.wave, level: lvlNow(), xp: profile.xpTotal, pvp: profile.pvpKills }]; }
   else {
     rows = scoresList.filter(s => s && typeof s === 'object');
-    if (lbState === 'loading') msg = 'Liderlik tablosu yükleniyor…';
-    if (lbState === 'slow') msg = 'Liderlik tablosuna şu an ulaşılamıyor; gösterilenler eski olabilir.';
-    if (lbState === 'error') msg = 'Liderlik tablosu yüklenemedi.';
-    if (NET.server && lbState === 'error') msg = 'Liderlik tablosu sunucusuna şu an ulaşılamıyor.';
-    if (NET.err) msg = 'Son skorun sunucuya gönderilemedi; bir sonraki turda tekrar denenecek.';
-    if (lbWriteOff) msg = 'Skorun tabloya yazılamadı: bu linkte yalnızca görüntüleme yetkin var gibi görünüyor. Linki paylaşan kişiden en az "Contributor" yetkisi iste.';
+    if (lbState === 'loading') msg = tx('Loading the leaderboard…', 'Liderlik tablosu yükleniyor…');
+    if (lbState === 'slow') msg = tx('Can\'t reach the leaderboard right now; what you see may be out of date.', 'Liderlik tablosuna şu an ulaşılamıyor; gösterilenler eski olabilir.');
+    if (lbState === 'error') msg = NET.server ? tx('Can\'t reach the leaderboard server right now.', 'Liderlik tablosu sunucusuna şu an ulaşılamıyor.') : tx('The leaderboard could not be loaded.', 'Liderlik tablosu yüklenemedi.');
+    if (NET.err) msg = tx('Your last score could not be sent; it will be retried after your next run.', 'Son skorun sunucuya gönderilemedi; bir sonraki turda tekrar denenecek.');
+    if (lbWriteOff) msg = tx('Your score could not be saved: this link seems to be view-only. Ask whoever shared it for at least "Contributor" access.', 'Skorun tabloya yazılamadı: bu linkte yalnızca görüntüleme yetkin var gibi görünüyor. Linki paylaşan kişiden en az "Contributor" yetkisi iste.');
   }
   rows = rows.map(s => ({ ...s, _v: Number(get(s)) || 0 })).filter(s => s._v > 0 || s.id === CAP.uid || s.id === 'me').sort((a, b) => b._v - a._v).slice(0, 50);
-  B.innerHTML = `<div class="panel"><h3>Liderlik tablosu</h3>
+  B.innerHTML = `<div class="panel"><h3>${tx('Leaderboard', 'Liderlik tablosu')}</h3>
     <div class="lbtabs">${Object.entries(cols).map(([k, c]) => `<button data-k="${k}" class="${k === lbTab ? 'on' : ''}">${c[0]}</button>`).join('')}</div>
     ${msg ? `<p class="note">${esc(msg)}</p>` : ''}
-    ${rows.length ? `<table class="lb"><tr><th>#</th><th>OYUNCU</th><th style="text-align:right">${esc(label.toUpperCase())}</th></tr>
-    ${rows.map((s, i) => { const me = s.id === CAP.uid || s.id === 'me'; const nm = me ? myName() : dispName(s.id, s.nick); const lv = clamp(Math.floor(Number(s.level) || 1), 1, 99);
-      return `<tr class="${me ? 'me' : ''}"><td class="r">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td><td>${esc(nm)}${me ? ' <span class="pill">sen</span>' : ''}<div class="ttl">Lv ${lv} · ${esc(titleFor(lv))}</div></td><td class="v">${esc(show(s._v, s))}</td></tr>`; }).join('')}</table>`
-      : `<p class="note">Henüz kimse skor yapmadı. İlk sen ol!</p>`}</div>`;
+    ${rows.length ? `<table class="lb"><tr><th>#</th><th>${tx('PLAYER', 'OYUNCU')}</th><th style="text-align:right">${esc(label.toLocaleUpperCase(LANG))}</th></tr>
+    ${rows.map((s, i) => {
+      const me = s.id === CAP.uid || s.id === 'me'; const nm = me ? myName() : dispName(s.id, s.nick); const lv = clamp(Math.floor(Number(s.level) || 1), 1, 99);
+      return `<tr class="${me ? 'me' : ''}"><td class="r">${i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td><td>${esc(nm)}${me ? ` <span class="pill">${tx('you', 'sen')}</span>` : ''}<div class="ttl">Lv ${lv} · ${esc(titleFor(lv))}</div></td><td class="v">${esc(show(s._v, s))}</td></tr>`;
+    }).join('')}</table>`
+      : `<p class="note">${tx('No scores yet. Be the first!', 'Henüz kimse skor yapmadı. İlk sen ol!')}</p>`}</div>`;
   B.querySelectorAll('.lbtabs button').forEach(b => b.onclick = () => { lbTab = b.dataset.k; renderLB(); });
 }
 function renderOnline() {
   const box = $('#online'); if (!box) return;
-  if (!CAP.room) { $('#onlineH').textContent = 'Çevrimiçi'; box.innerHTML = '<p class="note">Kimlerin oynadığı, Claude üzerinden paylaşılan sürümde görünür.</p>'; return; }
+  if (!CAP.room) { $('#onlineH').textContent = tx('Online', 'Çevrimiçi'); box.innerHTML = `<p class="note">${tx('Who\'s playing shows up here when the game server is reachable.', 'Kimlerin oynadığı, oyun sunucusuna bağlanınca burada görünür.')}</p>`; return; }
   const seen = new Set(), list = [];
   for (const p of lobbyPeers) {
     if (p.kind !== 'viewer') continue; const pr = p.presence || {}; const key = p.by || pr.u || p.peer;
     if (seen.has(key)) continue; seen.add(key); list.push(p);
   }
-  $('#onlineH').textContent = `Çevrimiçi · ${list.length}`;
-  const stText = pr => ({ sprint: `Sprint oynuyor · ${fmt(pr.sc || 0)}`, survival: `Hayatta Kal · ${pr.wv || 1}. dalga`, arena: 'Canlı Arena\'da ⚔' }[pr.st] || 'Menüde');
+  $('#onlineH').textContent = `${tx('Online', 'Çevrimiçi')} · ${list.length}`;
+  const stText = pr => ({ sprint: tx(`Playing Sprint · ${fmt(pr.sc || 0)}`, `Sprint oynuyor · ${fmt(pr.sc || 0)}`), survival: tx(`Survival · wave ${pr.wv || 1}`, `Hayatta Kal · ${pr.wv || 1}. dalga`), arena: tx('In the Live Arena ⚔', 'Canlı Arena\'da ⚔') }[pr.st] || tx('In the menu', 'Menüde'));
   box.innerHTML = list.length ? list.map(p => {
     const pr = p.presence || {}; const nm = p.isMe ? myName() : dispName(p.by || pr.u, pr.n); const lv = clamp(Math.floor(Number(pr.lv) || 1), 1, 99);
-    return `<div class="op"><div class="dot" style="background:#${new THREE.Color(tintOf(pr.tn)).getHexString()}">${esc((nm[0] || '?').toUpperCase())}</div><div><div>${esc(nm)}${p.isMe ? ' <span class="pill">sen</span>' : ''}</div><div class="st">Lv ${lv} · ${esc(stText(pr))}</div></div></div>`;
-  }).join('') + (list.length < 2 ? '<p class="note">Linki iş arkadaşlarınla paylaş; burada belirirler.</p>' : '') : '<p class="note">Bağlanılıyor…</p>';
+    return `<div class="op"><div class="dot" style="background:#${new THREE.Color(tintOf(pr.tn)).getHexString()}">${esc((nm[0] || '?').toUpperCase())}</div><div><div>${esc(nm)}${p.isMe ? ` <span class="pill">${tx('you', 'sen')}</span>` : ''}</div><div class="st">Lv ${lv} · ${esc(stText(pr))}</div></div></div>`;
+  }).join('') + (list.length < 2 ? `<p class="note">${tx('Share the link with friends; they\'ll show up here.', 'Linki arkadaşlarınla paylaş; burada belirirler.')}</p>` : '') : `<p class="note">${tx('Connecting…', 'Bağlanılıyor…')}</p>`;
 }
 
 /* ------------------------------ MAIN LOOP ------------------------------ */
@@ -1793,7 +2065,7 @@ function loop(now) {
     game.t += dt;
     if (game.mode !== 'arena' || !ARENA.dead) updatePlayer(dt);
     for (const k in cds) cds[k] = Math.max(0, cds[k] - dt);
-    breakT = Math.max(0, breakT - dt); overT = Math.max(0, overT - dt);
+    breakT = Math.max(0, breakT - dt); overT = Math.max(0, overT - dt); shieldT = Math.max(0, shieldT - dt);
     const s = ws[curW]; if (s.rel > 0) { s.rel -= dt; if (s.rel <= 0) { s.rel = 0; s.mag = magOf(W(curW)); } }
     if (firing) fire();
     if (game.mode !== 'arena') { updateDirector(dt); updateEnemies(dt); updateDrone(dt); updatePickups(dt); }
@@ -1802,12 +2074,11 @@ function loop(now) {
     game.comboT -= dt; if (game.comboT <= 0) game.combo = 0;
     if (game.state === 'playing') updateHUD();
     lobbyT -= dt; if (lobbyT <= 0) { lobbyT = 2.5; setLobbyPresence(); }
-    // camera
     shake = Math.max(0, shake - dt * 1.5);
     const bob = P.onGround ? Math.sin(P.bob * 2) * 0.035 * Math.min(1, Math.hypot(P.vel.x, P.vel.z) / 7) : 0;
     camera.position.set(P.pos.x + rand(-1, 1) * shake * 0.3, P.pos.y + P.eye + bob + rand(-1, 1) * shake * 0.3, P.pos.z);
     camera.rotation.set(P.pitch, P.yaw, 0);
-    const targetFov = settings.fov + (P.dashV.lengthSq() > 40 ? 8 : 0) - (breakT > 0 ? 6 : 0);
+    const targetFov = settings.fov + (P.dashV.lengthSq() > 40 || GR.active ? 8 : 0) - (breakT > 0 ? 6 : 0);
     if (Math.abs(camera.fov - targetFov) > 0.1) { camera.fov = lerp(camera.fov, targetFov, Math.min(1, dt * 10)); camera.updateProjectionMatrix(); }
     scene.fog.color.set(breakT > 0 ? 0x0a1a2a : 0x070b14);
     updateViewmodel(dt);
@@ -1821,12 +2092,13 @@ function loop(now) {
   renderer.render(scene, camera);
   if (game.state === 'playing') { renderer.clearDepth(); renderer.render(vmScene, vmCam); }
 }
+applyLang();
 buildViewmodel();
 renderMenu();
 requestAnimationFrame(loop);
 bootCaps();
 // debug hook for automated checks
-if (/[?&]debug/.test(location.search) || location.protocol === 'file:') window.__bugavi = { game, P, enemies, startRun, endRun, profile: () => profile, spawnEnemy, fire, ARENA };
+if (/[?&]debug/.test(location.search) || location.protocol === 'file:') window.__bugavi = { game, P, enemies, startRun, endRun, profile: () => profile, spawnEnemy, fire, ARENA, NET, setLang, useGrapple, useBlink, useShield, switchW };
 
 </script>
 </body>
