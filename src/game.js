@@ -10,6 +10,7 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const fmt = n => Math.floor(n).toLocaleString('tr-TR');
 const r2 = n => Math.round(n * 100) / 100;
 const V3 = THREE.Vector3;
+const track = (name, params) => { try { if (typeof window.gtag === 'function') window.gtag('event', name, params || {}); } catch (e) { } };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
 /* ---------------------------- GAME DATA ---------------------------- */
@@ -876,6 +877,7 @@ function startRun(mode) {
   if (mode === 'survival') nextWave();
   if (mode === 'sprint') banner('SPRINT BAŞLADI', '3 dakika · ne kadar bug, o kadar puan');
   if (mode === 'arena') joinArena();
+  track('run_start', { mode, level: lvlNow() });
   setLobbyPresence();
 }
 function nextWave() {
@@ -958,6 +960,8 @@ function endRun(reason) {
   if (profile.totalKills >= 100) unlockAch('k100');
   if (profile.totalKills >= 1000) unlockAch('k1000');
   const after = levelInfo(profile.xpTotal);
+  track('run_end', { mode, reason, score: Math.floor(game.score), kills: game.kills, wave: game.wave, xp_gained: xp, coffee_gained: coffee, level: after.L, duration_sec: Math.round(game.t) });
+  if (after.L > before.L) track('level_up', { level: after.L, title: titleFor(after.L) });
   if (after.L >= 10) unlockAch('lvl10');
   saveAll();
   const unlocks = [];
@@ -993,7 +997,7 @@ function endRun(reason) {
 function unlockAch(id) {
   if (profile.ach.includes(id)) return;
   const a = ACH.find(x => x.id === id); if (!a) return;
-  profile.ach.push(id); profile.coffee += 75; saveLocal();
+  profile.ach.push(id); profile.coffee += 75; saveLocal(); track('achievement_unlock', { achievement_id: id });
   toast(`🏆 Rozet: <b>${esc(a.name)}</b> · +75 ☕`);
 }
 function showMenu() {
@@ -1320,7 +1324,7 @@ function renderMenu() {
     <p class="note" style="margin-top:12px">☕ her turda puanına göre kazanılır. Rozetler +75 ☕ verir. Canlı Arena'da geliştirmeler devre dışıdır.</p></div>`;
     B.querySelectorAll('[data-u]').forEach(b => b.onclick = () => {
       const u = UPGRADES.find(x => x.id === b.dataset.u), l = upLv(u.id), c = upCost(u, l);
-      if (l >= u.max || profile.coffee < c) return; profile.coffee -= c; profile.up[u.id] = l + 1; ensureAudio(); sfx('buy'); saveAll(); renderMenu();
+      if (l >= u.max || profile.coffee < c) return; profile.coffee -= c; profile.up[u.id] = l + 1; ensureAudio(); sfx('buy'); track('upgrade_buy', { upgrade: u.id, upgrade_level: l + 1 }); saveAll(); renderMenu();
     });
   } else if (curTab === 'lb') renderLB();
   else if (curTab === 'settings') {
