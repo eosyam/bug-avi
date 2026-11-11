@@ -626,7 +626,9 @@ function updateFx(dt) {
 }
 
 /* ------------------------------ PLAYER ------------------------------ */
-const P = { pos: new V3(0, 0, 8), vel: new V3(), dashV: new V3(), yaw: 0, pitch: 0, onGround: true, jumps: 0, hp: 100, maxHp: 100, r: 0.4, eye: 1.6, bob: 0 };
+const P = { pos: new V3(0, 0, 8), vel: new V3(), dashV: new V3(), yaw: 0, pitch: 0, onGround: true, jumps: 0, hp: 100, maxHp: 100, r: 0.4, eye: 1.6, bob: 0, crouch: false };
+const EYE_STAND = 1.6, EYE_CROUCH = 1.05;
+const chestY = () => P.pos.y + (P.crouch ? 0.65 : 1.0);
 const keys = {};
 let firing = false, shake = 0;
 const cds = { dash: 0, grenade: 0, breakpoint: 0, grapple: 0, shield: 0, blink: 0 };
@@ -651,6 +653,8 @@ function updatePlayer(dt) {
   if (wish.lengthSq() > 0) wish.normalize();
   if (keys.ArrowLeft) P.yaw += 2.4 * dt; if (keys.ArrowRight) P.yaw -= 2.4 * dt;
   if (keys.ArrowUp) P.pitch = clamp(P.pitch + 1.6 * dt, -1.5, 1.5); if (keys.ArrowDown) P.pitch = clamp(P.pitch - 1.6 * dt, -1.5, 1.5);
+  P.crouch = !!(keys.ControlLeft || keys.ControlRight || keys.KeyC) && !GR.active;
+  P.eye = lerp(P.eye, P.crouch ? EYE_CROUCH : EYE_STAND, Math.min(1, dt * 14));
   const prevY = P.pos.y;
   if (GR.active) {
     GR.t += dt;
@@ -663,7 +667,7 @@ function updatePlayer(dt) {
       beam(muzzleWorld(), GR.point, 0xe8f6ff, 0.012, 0.03);
     }
   } else {
-    const spd = 7.2 * (pvp() ? 1 : 1 + 0.04 * upLv('spd'));
+    const spd = 7.2 * (pvp() ? 1 : 1 + 0.04 * upLv('spd')) * (P.crouch && P.onGround ? 0.5 : 1);
     const acc = P.onGround ? 14 : 4, k = Math.min(1, acc * dt);
     P.vel.x += (wish.x * spd - P.vel.x) * k; P.vel.z += (wish.z * spd - P.vel.z) * k;
     P.vel.y -= 24 * dt;
@@ -731,9 +735,9 @@ const tmpV = new V3();
 function muzzleWorld() { return camera.localToWorld(tmpV.set(0.26, -0.2, -0.9).clone()); }
 function camDir() { return new V3(0, 0, -1).applyQuaternion(camera.quaternion).normalize(); }
 function remoteHitT(r, o, d) {
-  const p = r.mesh.position; let best = -1, head = false;
-  const th = raySphere(o, d, tmpV.set(p.x, p.y + 1.62, p.z), 0.3); if (th > 0) { best = th; head = true; }
-  for (const [hy, rr] of [[1.05, 0.5], [0.45, 0.4]]) { const t = raySphere(o, d, tmpV.set(p.x, p.y + hy, p.z), rr); if (t > 0 && (best < 0 || t < best)) { best = t; head = false; } }
+  const p = r.mesh.position, k = r.ck || 1; let best = -1, head = false;
+  const th = raySphere(o, d, tmpV.set(p.x, p.y + 1.62 * k, p.z), 0.3); if (th > 0) { best = th; head = true; }
+  for (const [hy, rr] of [[1.05, 0.5], [0.45, 0.4]]) { const t = raySphere(o, d, tmpV.set(p.x, p.y + hy * k, p.z), rr * (k < 1 ? 0.85 : 1)); if (t > 0 && (best < 0 || t < best)) { best = t; head = false; } }
   return { t: best, head };
 }
 const targetable = r => r.alive && !r.prot;
@@ -771,7 +775,7 @@ function fire() {
     const right = new V3(1, 0, 0).applyQuaternion(camera.quaternion), up = new V3(0, 1, 0).applyQuaternion(camera.quaternion);
     for (let i = 0; i < w.pellets; i++) {
       const d = dir.clone();
-      if (w.spread) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * w.spread * (P.onGround ? 1 : 1.6); d.addScaledVector(right, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize(); }
+      if (w.spread) { const a = Math.random() * Math.PI * 2, r = Math.sqrt(Math.random()) * w.spread * (P.onGround ? (P.crouch ? 0.55 : 1) : 1.6); d.addScaledVector(right, Math.cos(a) * r).addScaledVector(up, Math.sin(a) * r).normalize(); }
       const wallT = rayWorld(o, d);
       const hits = [];
       for (const e of enemies) { if (e.dead || e.downed) continue; const t = raySphere(o, d, e.center, e.hitR); if (t > 0 && t < wallT) hits.push({ e, t }); }
@@ -864,7 +868,7 @@ function updateProjs(dt) {
         if (!hit && pvp()) for (const r of ARENA.remotes.values()) if (targetable(r) && r.mesh.position.clone().setY(r.mesh.position.y + 1).distanceTo(pos) < 0.7) { hit = true; break; }
         if (hit || p.life <= 0) { explode(prev, W('launcher').dmg, W('launcher').splash, true); dead = true; }
       } else if (p.kind === 'orb') {
-        if (!pvp() && pos.distanceTo(tmpV.set(P.pos.x, P.pos.y + 1.0, P.pos.z)) < 0.75) { damagePlayer(p.dmg, prev); dead = true; burst(pos, 0x3ddc97, 10, 4, 0.4); }
+        if (!pvp() && pos.distanceTo(tmpV.set(P.pos.x, chestY(), P.pos.z)) < (P.crouch ? 0.6 : 0.75)) { damagePlayer(p.dmg, prev); dead = true; burst(pos, 0x3ddc97, 10, 4, 0.4); }
         else if (hitWall || p.life <= 0) { dead = true; burst(pos, 0x3ddc97, 6, 3, 0.3); }
       }
     }
@@ -1025,7 +1029,7 @@ function setAlpha(e, a) {
 }
 function updateEnemies(dt) {
   const ts = breakT > 0 ? 0.25 : 1, edt = dt * ts;
-  const pc = new V3(P.pos.x, P.pos.y + 1.0, P.pos.z);
+  const pc = new V3(P.pos.x, chestY(), P.pos.z);
   const cpos = camera.position.clone(), cdir = camDir();
   for (let i = enemies.length - 1; i >= 0; i--) {
     const e = enemies[i]; if (e.dead) { enemies.splice(i, 1); continue; }
@@ -1187,7 +1191,7 @@ function startRun(mode) {
   clearEnemies();
   Object.assign(game, { state: 'playing', mode, t: 0, score: 0, kills: 0, combo: 0, comboT: 0, wave: 0, timeLeft: SPRINT_LEN, hpScale: 1, spdScale: 1, dmgScale: 1, spawnT: 1.2, toSpawn: [], breakT: 0, paused: false, bossDone: false, seen: new Set() });
   P.maxHp = pvp() ? 100 : 100 + 15 * upLv('hp'); P.hp = P.maxHp;
-  P.vel.set(0, 0, 0); P.dashV.set(0, 0, 0); P.pitch = 0;
+  P.vel.set(0, 0, 0); P.dashV.set(0, 0, 0); P.pitch = 0; P.crouch = false; P.eye = EYE_STAND;
   if (mode === 'arena') { const s = arenaSpawn(); P.pos.copy(s); P.yaw = Math.atan2(s.x, s.z); }
   else { P.pos.set(0, 0, 8); P.yaw = 0; }
   for (const k in cds) cds[k] = 0;
@@ -1405,7 +1409,7 @@ function peerName(peer) {
 }
 const bubbleGeo = new THREE.SphereGeometry(1, 18, 12);
 function makeAvatar(color) {
-  const g = new THREE.Group();
+  const root = new THREE.Group(), g = new THREE.Group(); root.add(g);
   const mat = new THREE.MeshStandardMaterial({ color: 0x2a3350, roughness: 0.5, metalness: 0.4 });
   const acc = new THREE.MeshStandardMaterial({ color, emissive: color, emissiveIntensity: 0.6 });
   const body = new THREE.Mesh(new THREE.CylinderGeometry(0.38, 0.32, 1.0, 12), mat); body.position.y = 0.95; body.castShadow = true; g.add(body);
@@ -1416,8 +1420,8 @@ function makeAvatar(color) {
   const gun = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.12, 0.6), acc); gun.position.set(0.32, 1.15, -0.35); g.add(gun);
   const bubble = new THREE.Mesh(bubbleGeo, new THREE.MeshBasicMaterial({ color: 0x36e2ff, transparent: true, opacity: 0.22, depthWrite: false, blending: THREE.AdditiveBlending }));
   bubble.scale.set(0.8, 1.1, 0.8); bubble.position.y = 1.0; bubble.visible = false; g.add(bubble);
-  g.userData.acc = acc; g.userData.bubble = bubble;
-  return g;
+  root.userData.acc = acc; root.userData.bubble = bubble; root.userData.rig = g;
+  return root;
 }
 function labelSprite(text, color) {
   const c = document.createElement('canvas'); c.width = 256; c.height = 64; const x = c.getContext('2d');
@@ -1455,7 +1459,7 @@ function upsertRemote(p) {
   if (ks > r.ks) { const sn = STREAKS.find(([k]) => k === ks); if (sn && r.seen) addFeedMsg(`${r.name} — ${loc(sn[1])}`); }
   r.ks = ks;
   r.alive = r.seen && !pr.x && r.hp > 0;
-  r.prot = !!pr.pr; r.sh = !!pr.sh;
+  r.prot = !!pr.pr; r.sh = !!pr.sh; r.cr = !!pr.cr;
   r.mesh.visible = r.alive;
   const bub = r.mesh.userData.bubble; bub.visible = r.alive && (r.prot || r.sh); bub.material.color.set(r.sh ? 0x36e2ff : 0xffffff);
   if (Array.isArray(pr.s) && pr.s.length === 4 && pr.s.every(Number.isFinite)) {
@@ -1522,6 +1526,8 @@ function updateArena(dt) {
   for (const r of ARENA.remotes.values()) {
     if (!r.seen) continue;
     r.mesh.position.lerp(r.target, Math.min(1, dt * 14));
+    r.ck = lerp(r.ck || 1, r.cr ? 0.66 : 1, Math.min(1, dt * 14));
+    r.mesh.userData.rig.scale.y = r.ck; if (r.label) r.label.position.y = 2.25 * r.ck + 0.1 * (1 - r.ck);
     let dy = r.yaw - r.mesh.rotation.y; dy = Math.atan2(Math.sin(dy), Math.cos(dy)); r.mesh.rotation.y += dy * Math.min(1, dt * 14);
   }
   ARENA.presT -= dt; if (ARENA.presT <= 0) { ARENA.presT = 1 / 12; sendArenaPresence(false); }
@@ -1530,7 +1536,7 @@ function sendArenaPresence(force) {
   if (!ARENA.room) return;
   const pr = {
     u: CAP.uid || null, n: profile.nick || '', c: profile.tint, p: [r2(P.pos.x), r2(P.pos.y), r2(P.pos.z)], r: [Math.round(P.yaw * 1000) / 1000, Math.round(P.pitch * 1000) / 1000],
-    h: Math.ceil(P.hp), w: WEAPONS.findIndex(w => w.id === curW), k: ARENA.kills, d: ARENA.deaths, ks: ARENA.streak, x: ARENA.dead ? 1 : 0,
+    h: Math.ceil(P.hp), cr: P.crouch ? 1 : 0, w: WEAPONS.findIndex(w => w.id === curW), k: ARENA.kills, d: ARENA.deaths, ks: ARENA.streak, x: ARENA.dead ? 1 : 0,
     pr: ARENA.protT > 0 || ARENA.inter ? 1 : 0, sh: shieldT > 0 ? 1 : 0, s: ARENA.shot,
   };
   const key = JSON.stringify(pr); if (!force && key === ARENA.lastPres) return; ARENA.lastPres = key;
@@ -1654,6 +1660,7 @@ window.addEventListener('keydown', e => {
   if (e.target && (e.target.tagName === 'INPUT')) return;
   keys[e.code] = true;
   if (game.state !== 'playing') return;
+  if (e.ctrlKey || e.code === 'ControlLeft' || e.code === 'ControlRight') e.preventDefault(); // Ctrl = crouch: stop Ctrl+S/D/F… (Ctrl+W can't be blocked; see beforeunload)
   if (['Space', 'Tab', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
   if (game.paused) return;
   switch (e.code) {
@@ -1671,6 +1678,8 @@ window.addEventListener('keydown', e => {
   }
 });
 window.addEventListener('keyup', e => { keys[e.code] = false; if (e.code === 'Tab') $('#scoreboard').classList.add('hidden'); });
+// Ctrl+W (crouch + forward) closes the tab and browsers don't let pages block it; ask before leaving mid-run instead.
+window.addEventListener('beforeunload', e => { if (game.state === 'playing') { e.preventDefault(); e.returnValue = ''; } });
 window.addEventListener('blur', () => { for (const k in keys) keys[k] = false; firing = false; });
 document.addEventListener('visibilitychange', () => { if (document.hidden && game.state === 'playing' && game.mode !== 'arena') pauseGame(); });
 window.addEventListener('resize', () => {
@@ -1705,7 +1714,7 @@ function renderMenu() {
       <button class="mode pvp" data-mode="arena" ${CAP.room ? '' : 'disabled'}><div class="ic">⚔</div><div class="nm">${modeName('arena')}</div><div class="ds">${CAP.room ? tx('Real-time free-for-all with friends. 5-minute rounds with an MVP at the end. Upgrades are off; XP still counts.', 'Arkadaşlarınla gerçek zamanlı herkes herkese karşı. 5 dakikalık maçlar, sonunda MVP. Geliştirmeler kapalı; XP yine sayılır.') : tx('The live arena is unavailable: could not reach the game server.', 'Canlı arena şu an kapalı: oyun sunucusuna bağlanılamadı.')}</div><div class="bs">${CAP.room ? `<span class="live">${inArena ? tx(`${inArena} IN THE ARENA`, `${inArena} KİŞİ ARENADA`) : tx('LIVE', 'CANLI')}</span>` : ''}</div></button>
     </div>
     <div class="keys">
-      <div><kbd>W A S D</kbd> ${tx('move', 'hareket')}</div><div><kbd>${tx('Mouse', 'Fare')}</kbd> ${tx('aim', 'nişan')} · <kbd>${tx('Left click', 'Sol tık')}</kbd> ${tx('fire', 'ateş')}</div><div><kbd>Space</kbd> ${tx('jump', 'zıpla')}</div><div><kbd>R</kbd> ${tx('reload', 'şarjör')}</div>
+      <div><kbd>W A S D</kbd> ${tx('move', 'hareket')}</div><div><kbd>${tx('Mouse', 'Fare')}</kbd> ${tx('aim', 'nişan')} · <kbd>${tx('Left click', 'Sol tık')}</kbd> ${tx('fire', 'ateş')}</div><div><kbd>Space</kbd> ${tx('jump', 'zıpla')}</div><div><kbd>Ctrl</kbd> / <kbd>C</kbd> ${tx('crouch', 'çömel')}</div><div><kbd>R</kbd> ${tx('reload', 'şarjör')}</div>
       <div><kbd>1-${WEAPONS.length}</kbd> / <kbd>${tx('Wheel', 'Tekerlek')}</kbd> ${tx('weapon', 'silah')}</div><div><kbd>Shift</kbd> dash ${L < 2 ? pill(2) : ''}</div>
       <div><kbd>E</kbd> ${tx('grapple', 'kanca')} ${L < 5 ? pill(5) : ''}</div><div><kbd>G</kbd> / <kbd>${tx('Right click', 'Sağ tık')}</kbd> ${tx('grenade', 'bomba')} ${L < 6 ? pill(6) : ''}</div>
       <div><kbd>F</kbd> ${tx('shield', 'kalkan')} ${L < 8 ? pill(8) : ''}</div><div><kbd>Q</kbd> breakpoint ${L < 9 ? pill(9) : ''}</div><div><kbd>V</kbd> ${tx('blink', 'ışınlanma')} ${L < 12 ? pill(12) : ''}</div>

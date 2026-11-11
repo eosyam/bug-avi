@@ -19,7 +19,7 @@ Sunucu odasında NullPointer, RaceCondition, MergeConflict, FlakyTest, MemoryLea
 - ☕ kahve ile kalıcı geliştirmeler, silah renkleri, 10 rozet
 
 ## Kontroller
-`WASD` hareket · fare nişan · sol tık ateş · `Space` zıpla · `Shift` dash · `E` kanca · `F` kalkan · `V` ışınlanma · `R` şarjör · `1-6` / tekerlek silah · `G` / sağ tık bomba · `Q` breakpoint · `Tab` arena skor tablosu · `Esc` duraklat
+`WASD` hareket · fare nişan · sol tık ateş · `Space` zıpla · `Ctrl` / `C` çömel · `Shift` dash · `E` kanca · `F` kalkan · `V` ışınlanma · `R` şarjör · `1-6` / tekerlek silah · `G` / sağ tık bomba · `Q` breakpoint · `Tab` arena skor tablosu · `Esc` duraklat
 
 ## Canlı Arena ve ortak liderlik tablosu
 Çok oyunculu kısım `server/` klasöründeki küçük bir Cloudflare Worker ile çalışır (Durable Objects: arena/lobi için WebSocket odaları, liderlik tablosu için SQLite). Sunucu yoksa oyun tek oyunculu modda açılır.
